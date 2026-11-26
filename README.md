@@ -47,7 +47,7 @@ The backend tests use Java 21 and a Docker-backed PostgreSQL/PostGIS fixture.
 (cd e2e && npm ci && npx playwright install chromium && npm test)
 ```
 
-Run the browser tests while the Compose app is listening. Set `HYDROGRID_BASE_URL` to exercise a different deployment. `node deploy/benchmark.mjs` queries a running app and prints results for three fixed scenarios.
+Run the browser tests while the Compose app is listening. Set `HYDROGRID_BASE_URL` to exercise a different deployment. `node deploy/benchmark.mjs` queries a running app and reproduces the [three fixed benchmark scenarios](docs/benchmarks.md).
 
 ## Deploy on the free tier
 

@@ -9,7 +9,6 @@ RUN npm run build
 FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /build
 COPY backend/pom.xml ./
-RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp dependency:go-offline
 COPY backend/src ./src
 COPY --from=ui /build/dist/ ./src/main/resources/static/
 RUN --mount=type=cache,target=/root/.m2 mvn -B -ntp -Dmaven.test.skip=true package \

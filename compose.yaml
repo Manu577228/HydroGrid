@@ -1,0 +1,39 @@
+name: hydrogrid
+
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: hydrogrid
+      POSTGRES_USER: hydrogrid
+      POSTGRES_PASSWORD: ${HYDROGRID_DB_PASSWORD:-hydrogrid-local-only}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hydrogrid -d hydrogrid"]
+      interval: 3s
+      timeout: 3s
+      retries: 25
+
+  app:
+    build: .
+    mem_limit: 512m
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: "8080"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/hydrogrid
+      SPRING_DATASOURCE_USERNAME: hydrogrid
+      SPRING_DATASOURCE_PASSWORD: ${HYDROGRID_DB_PASSWORD:-hydrogrid-local-only}
+      HYDROGRID_DEMO_ENABLED: "true"
+      HYDROGRID_JWT_SECRET: ${HYDROGRID_JWT_SECRET:-}
+      SERVER_TOMCAT_THREADS_MAX: "24"
+      SERVER_TOMCAT_THREADS_MIN_SPARE: "3"
+    ports:
+      - "127.0.0.1:${HYDROGRID_PORT:-8080}:8080"
+
+volumes:
+  db-data:
+

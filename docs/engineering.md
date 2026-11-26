@@ -31,15 +31,4 @@ Send the same input to the simulation endpoint twice to reproduce the generated 
 
 ## Development lifecycle
 
-| Stage | Evidence |
-| --- | --- |
-| Discover | Scope centered on degraded networks, flood routing, and resource scarcity. |
-| Define | Seven pages, a bounded graph, synthetic workspaces, and a seeded comparison. The README documents the intended workflow. |
-| Design | One deployable Spring Boot app, spatial database, offline browser queue, and distinct roles. |
-| Build | React pages, Spring endpoints, Flyway schema, and Java algorithms in the repository history. |
-| Test | JUnit algorithm tests, Testcontainers transaction tests, and Playwright API and offline checks. |
-| Review | Verification covers role boundaries, workspace isolation, idempotency, and blocked roads. |
-| Release | Docker Compose, GitHub Actions, and the Render Blueprint. |
-| Evaluate | Reproducible scenario metrics and tradeoffs. Re-run with `node deploy/benchmark.mjs`. |
-
-Codex built the frontend, API, and engine in parallel with subagents inheriting the same session model configuration. The parent integrated, tested, and prepared deployment. The exact model variant and reasoning effort were absent from the task environment.
+The evidence index links each of the eight stages to decisions, code, tests, or measured results. Codex used `gpt-6.2-sol` at `ultra` reasoning effort according to the session configuration, and subagents inherited those settings. [Judging evidence](judging.md)

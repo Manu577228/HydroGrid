@@ -2,6 +2,8 @@
 
 HydroGrid is a synthetic flood-response exercise for coordinators, citizens, responders, and shelter operators. It runs disaster scenarios under constrained connectivity and compares two dispatch policies against the same seeded events.
 
+Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
+
 ## Run the demo
 
 Requires Docker with Compose. From the repository root:
@@ -33,7 +35,7 @@ Compose preserves the demo database between starts. The volume holds only synthe
 | Simulation lab | Set the seed, incidents, units, flood intensity, and network disruption. Replay both dispatch policies. |
 | Analytics & audit | Compare measured scenario outcomes and review the operational event log. |
 
-See the [competition walkthrough](docs/demo.md) for a four-minute sequence.
+Follow the four-minute sequence for the offline SOS, flood detour, dispatch, and simulation. [Competition walkthrough](docs/demo.md)
 
 ## Verify
 

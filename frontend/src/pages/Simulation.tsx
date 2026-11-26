@@ -8,6 +8,19 @@ import { Button, Empty, ErrorNotice, Loading, PageTitle, PanelTitle } from '../c
 import { useNetwork } from '../network'
 import type { Graph, Scenario, Simulation, SimulationDispatch } from '../types'
 
+const benchmarkStorageKey = 'hydrogrid-last-benchmark'
+function savedBenchmark(): Simulation | undefined {
+  try {
+    const raw = localStorage.getItem(benchmarkStorageKey)
+    if (!raw) return undefined
+    const result = JSON.parse(raw) as Simulation
+    if (!result.scenario || !result.summary || !Array.isArray(result.baselineDispatches) || !Array.isArray(result.hydroGridDispatches)) return undefined
+    return result
+  } catch {
+    return undefined
+  }
+}
+
 const defaultScenario: Scenario = { seed: 1337, incidents: 100, units: 15, floodIntensity: 40, networkDisruption: 30 }
 
 function Range({ label, value, max, min = 0, suffix = '', onChange, icon: Icon }: {
@@ -30,11 +43,21 @@ export function SimulationPage() {
   const [routeFlood, setRouteFlood] = useState(40)
   const graph = useQuery({ queryKey: ['graph'], queryFn: () => api.graph(), enabled: !offline })
   const route = useQuery({ queryKey: ['route', from, to], queryFn: () => api.route(from, to), enabled: !offline })
-  const results = useQuery<Simulation>({ queryKey: latestSimulationKey, queryFn: () => client.getQueryData(latestSimulationKey)!, enabled: false, gcTime: Infinity })
+  const results = useQuery<Simulation>({ queryKey: latestSimulationKey, queryFn: () => client.getQueryData(latestSimulationKey)!, enabled: false, gcTime: Infinity, initialData: savedBenchmark })
   const result = results.data
   const run = useMutation({
     mutationFn: api.simulation,
-    onSuccess: (data) => { client.setQueryData(latestSimulationKey, data); setMinute(0); setPlaying(false) },
+    onSuccess: (data) => {
+      client.setQueryData(latestSimulationKey, data)
+      const serialized = JSON.stringify(data)
+      if (serialized.length < 1_000_000) {
+        try { localStorage.setItem(benchmarkStorageKey, serialized) } catch {
+          // The result remains available for this tab and can still be exported.
+        }
+      }
+      setMinute(0)
+      setPlaying(false)
+    },
   })
   const applyFlood = useMutation({
     mutationFn: api.hazards,

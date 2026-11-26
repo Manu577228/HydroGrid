@@ -1,15 +1,16 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Activity, AlertTriangle, ArrowRight, BusFront, ChevronRight, CircleCheck, ClipboardList, Crosshair, FlaskConical,
-  History, HousePlus, Layers, ListFilter, MapPin, MapPinned, Route as RouteIcon, Siren, UserRound,
+  History, HousePlus, Layers, MapPin, MapPinned, Route as RouteIcon, Search, Siren, UserRound,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api, client } from '../api'
 import { OperatingMap } from '../components/Map'
 import { Button, cn, Empty, equipmentLabel, ErrorNotice, hazardLabels, Loading, Modal, PageTitle, PanelTitle, SeverityBadge, StatusBadge, timestamp } from '../components/ui'
 import { useNetwork } from '../network'
 import type { Incident, Severity } from '../types'
+import './workflows.css'
 
 function Metric({ icon, label, value, detail, tone }: { icon: ReactNode; label: string; value: ReactNode; detail: string; tone?: string }) {
   return <article className="panel metric-card"><div className="metric-top"><span>{label}</span><span className={cn('metric-icon', tone)}>{icon}</span></div><strong>{value}</strong><small>{detail}</small></article>
@@ -23,7 +24,13 @@ export function CommandPage() {
   const shelters = useQuery({ queryKey: ['shelters'], queryFn: api.shelters, enabled: !offline })
   const clusters = useQuery({ queryKey: ['clusters'], queryFn: api.clusters, enabled: !offline })
   const [selectedId, setSelectedId] = useState<string>()
-  const [filter, setFilter] = useState('active')
+  const [params] = useSearchParams()
+  const [filter, setFilter] = useState(params.has('incident') ? 'all' : 'active')
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState('')
+  const [band, setBand] = useState('')
+  const [focus, setFocus] = useState(0)
+  const [dispatchTarget, setDispatchTarget] = useState<{ incident: string; unit: string; label: string }>()
   const [unitId, setUnitId] = useState('')
   const [overrideOpen, setOverrideOpen] = useState(false)
   const [severity, setSeverity] = useState<Severity>('HIGH')
@@ -33,8 +40,14 @@ export function CommandPage() {
   const detailsPanel = useRef<HTMLElement>(null)
   const all = [...(incidents.data ?? [])].sort((a, b) => b.score - a.score || Date.parse(a.createdAt) - Date.parse(b.createdAt))
   const active = all.filter((item) => item.status !== 'RESOLVED')
-  const filtered = filter === 'all' ? all : filter === 'critical' ? active.filter((item) => item.severity === 'CRITICAL') : active
-  const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0]
+  const needle = search.trim().toLowerCase()
+  const filtered = all.filter((item) =>
+    (filter === 'all' || (filter === 'active' ? item.status !== 'RESOLVED' : item.status === filter)) &&
+    (!band || item.severity === band) && (!category || item.hazard === category) &&
+    (!needle || [item.id, item.summary, item.nodeId, graph.data?.nodes.find((node) => node.id === item.nodeId)?.label]
+      .some((value) => value?.toLowerCase().includes(needle))))
+  const requestedId = selectedId ?? params.get('incident')
+  const selected = filtered.find((item) => item.id === requestedId) ?? filtered[0]
   const queryId = selected?.id ?? ''
   const recommendations = useQuery({
     queryKey: ['recommendations', queryId], queryFn: () => api.recommendations(queryId), enabled: Boolean(queryId && selected.status === 'REPORTED' && !offline),
@@ -47,13 +60,18 @@ export function CommandPage() {
   const related = clusters.data?.find((cluster) => cluster.incidentIds.includes(queryId))
   const relatedIncident = related && all.find((item) => item.id !== queryId && related.incidentIds.includes(item.id))
   const refresh = () => client.invalidateQueries({ predicate: (query) => query.queryKey[0] !== 'simulation' })
-  const dispatch = useMutation({ mutationFn: ({ id, unit }: { id: string; unit: string }) => api.dispatch(id, unit), onSuccess: async () => { setConfirmation('Unit dispatched. The mission is now in the responder console.'); await refresh() } })
+  const dispatch = useMutation({ mutationFn: ({ id, unit }: { id: string; unit: string }) => api.dispatch(id, unit), onSuccess: async () => { setDispatchTarget(undefined); setConfirmation('Unit dispatched. The mission is now in the responder console.'); await refresh() } })
   const triage = useMutation({ mutationFn: ({ id, selectedSeverity, reason }: { id: string; selectedSeverity: Severity; reason: string }) => api.triage(id, selectedSeverity, reason), onSuccess: async () => { setOverrideOpen(false); await refresh() } })
   const grouping = useMutation({ mutationFn: api.group, onSuccess: async () => { setConfirmation('Reports grouped. Individual reports and headcounts are preserved.'); await refresh() } })
   useEffect(() => { setUnitId(''); setConfirmation(''); dispatch.reset(); grouping.reset(); triage.reset() }, [queryId])
 
   const onSelect = (id: string) => {
-    if (!filtered.some((incident) => incident.id === id)) setFilter('all')
+    if (!filtered.some((incident) => incident.id === id)) {
+      setFilter('all')
+      setSearch('')
+      setCategory('')
+      setBand('')
+    }
     setSelectedId(id)
   }
 
@@ -72,12 +90,24 @@ export function CommandPage() {
     <div className="command-top">
       <section className="panel command-map-panel">
         <PanelTitle icon={<MapPinned size={17} />} title="Operating map" detail="Flood zones, closed roads, and rescue teams" actions={<span className={cn('connection-status', live && 'connection-live')}><i />{live ? 'Live' : offline ? 'Offline' : 'Connecting'}</span>} />
-        {graph.data ? <OperatingMap graph={graph.data} incidents={active} units={units.data} shelters={shelters.data} selected={selected} route={dispatch.isSuccess ? undefined : candidate?.route} onSelect={onSelect} /> : offline ? <Empty>The map will load when connected.</Empty> : graph.isError ? <ErrorNotice error={graph.error} /> : <Loading label="Loading map" />}
+        {graph.data ? <OperatingMap graph={graph.data} incidents={active} units={units.data} shelters={shelters.data} selected={selected} route={dispatch.isSuccess ? undefined : candidate?.route} onSelect={onSelect} focus={focus} /> : offline ? <Empty>The map will load when connected.</Empty> : graph.isError ? <ErrorNotice error={graph.error} /> : <Loading label="Loading map" />}
         <div className="panel-footer"><Layers size={15} /> <span>{graph.data ? graph.data.blockedRoadIds.length + ' roads blocked at ' + graph.data.intensity + '% flood intensity' : 'Synthetic routes'}.</span><Link to="/simulation" className="text-link">Adjust hazard <ArrowRight size={14} /></Link></div>
       </section>
       <section className="panel incidents-panel">
         <PanelTitle icon={<ClipboardList size={17} />} title="Incident queue" detail="Highest priority reports appear first" />
-        <div className="incident-filters"><ListFilter size={16} /><select aria-label="Filter incidents" value={filter} onChange={(event) => setFilter(event.target.value)}><option value="active">Active incidents</option><option value="critical">Critical incidents</option><option value="all">All incident reports</option></select><span>{filtered.length}</span></div>
+        <div className="command-toolbar">
+          <label className="field-label"><span><Search size={14} aria-hidden="true" /> Find report</span><input type="search" placeholder="ID or location" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+          <label className="field-label">Status<select aria-label="Filter incidents" value={filter} onChange={(event) => setFilter(event.target.value)}>
+            <option value="active">Active</option><option value="all">All statuses</option><option value="REPORTED">Reported</option>
+            <option value="ASSIGNED">Assigned</option><option value="EN_ROUTE">En route</option><option value="ON_SCENE">On scene</option><option value="RESOLVED">Resolved</option>
+          </select></label>
+          <label className="field-label">Severity<select value={band} onChange={(event) => setBand(event.target.value)}>
+            <option value="">All severities</option>{['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map((severity) => <option key={severity}>{severity}</option>)}
+          </select></label>
+          <label className="field-label">Category<select value={category} onChange={(event) => setCategory(event.target.value)}>
+            <option value="">All categories</option>{Object.entries(hazardLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          </select></label>
+        </div>
         <div className="incident-list" aria-label="Incident queue">
           {filtered.map((item) => <IncidentRow key={item.id} incident={item} selected={selected?.id === item.id} onClick={() => setSelectedId(item.id)} />)}
           {!filtered.length && (offline ? <Empty>Incident reports will load when connected.</Empty> : incidents.isError ? <ErrorNotice error={incidents.error} /> : incidents.isPending ? <Loading label="Loading incidents" /> : <Empty>No reports match this filter.</Empty>)}
@@ -87,6 +117,7 @@ export function CommandPage() {
             detailsPanel.current?.focus({ preventScroll: true })
             detailsPanel.current?.scrollIntoView({ block: 'start' })
           }}><Crosshair size={16} /> Review selected report</Button>
+          {graph.data && <Button variant="ghost" size="sm" onClick={() => setFocus((count) => count + 1)}><MapPin size={15} /> Focus on map</Button>}
         </div>}
       </section>
     </div>
@@ -111,7 +142,7 @@ export function CommandPage() {
               </select></label>
               <div className="route-summary"><RouteIcon size={17} /><div><strong>{candidate.route.distanceKm.toFixed(2)} km · {candidate.route.travelMinutes.toFixed(1)} min</strong><small>Simulated route through accessible roads</small></div></div>
               {recommendedUnit && <p className="muted small">Equipment on board · {equipmentLabel(recommendedUnit.equipment)}</p>}
-              <Button disabled={dispatch.isPending || offline} onClick={() => dispatch.mutate({ id: selected.id, unit: candidate.unitId })}><ArrowRight size={17} /> Dispatch unit</Button>
+              <Button disabled={dispatch.isPending || offline} onClick={() => setDispatchTarget({ incident: selected.id, unit: candidate.unitId, label: recommendedUnit?.name ?? 'Selected unit' })}><ArrowRight size={17} /> Dispatch unit</Button>
             </> : recommendations.data && <div className="notice"><AlertTriangle size={17} />{recommendations.data.reason}</div>}
           </> : <div className="route-summary">
             <CircleCheck size={18} /><div>
@@ -130,6 +161,16 @@ export function CommandPage() {
         <ErrorNotice error={timeline.error} />
       </div>}
     </section>}
+    <Modal open={Boolean(dispatchTarget)} onOpenChange={(open) => { if (!open && !dispatch.isPending) setDispatchTarget(undefined) }}
+      title="Confirm exercise dispatch" description={dispatchTarget ? 'Assign ' + dispatchTarget.label + ' to this report?' : 'Confirm the selected assignment.'}>
+      <ErrorNotice error={dispatch.error} />
+      <div className="modal-actions">
+        <Button variant="outline" disabled={dispatch.isPending} onClick={() => setDispatchTarget(undefined)}>Cancel</Button>
+        <Button disabled={!dispatchTarget || dispatch.isPending || offline} onClick={() => {
+          if (dispatchTarget) dispatch.mutate({ id: dispatchTarget.incident, unit: dispatchTarget.unit })
+        }}>{dispatch.isPending ? 'Assigning…' : 'Confirm dispatch'}</Button>
+      </div>
+    </Modal>
     <Modal open={overrideOpen} onOpenChange={setOverrideOpen} title="Review incident severity" description="The selected band and review are recorded in the incident timeline.">
       <form className="form-stack" onSubmit={(event) => { event.preventDefault(); if (selected) triage.mutate({ id: selected.id, selectedSeverity: severity, reason: overrideReason }) }}>
         <label className="field-label">Severity band<select value={severity} onChange={(event) => setSeverity(event.target.value as Severity)}>{['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map((value) => <option key={value}>{value}</option>)}</select></label>

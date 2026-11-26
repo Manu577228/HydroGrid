@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import 'leaflet/dist/leaflet.css'
+import { AccountProvider } from './account'
 import { client } from './api'
 import { Shell } from './components/Shell'
 import { Loading } from './components/ui'
@@ -20,15 +21,30 @@ const ShelterPage = lazy(() => import('./pages/Shelter').then((page) => ({ defau
 const SimulationPage = lazy(() => import('./pages/Simulation').then((page) => ({ default: page.SimulationPage })))
 const SosPage = lazy(() => import('./pages/Sos').then((page) => ({ default: page.SosPage })))
 
+const DashboardPage = lazy(() => import('./pages/Dashboard').then((page) => ({ default: page.DashboardPage })))
+const IncidentsPage = lazy(() => import('./pages/Incidents').then((page) => ({ default: page.IncidentsPage })))
+const ResourcesPage = lazy(() => import('./pages/Resources').then((page) => ({ default: page.ResourcesPage })))
+const LoginPage = lazy(() => import('./pages/Account').then((page) => ({ default: page.LoginPage })))
+const RegisterPage = lazy(() => import('./pages/Account').then((page) => ({ default: page.RegisterPage })))
+const ProfilePage = lazy(() => import('./pages/Account').then((page) => ({ default: page.ProfilePage })))
+
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={client}>
-    <NetworkProvider>
-      <HashRouter>
+    <HashRouter>
+      <AccountProvider>
+        <NetworkProvider>
         <Shell>
           <Suspense fallback={<Loading />}><Routes>
             <Route path="/" element={<Overview />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/incidents" element={<IncidentsPage />} />
+            <Route path="/units" element={<ResourcesPage />} />
+            <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/command" element={<CommandPage />} />
             <Route path="/live" element={<LivePage />} />
             <Route path="/operations" element={<OperationsPage />} />
@@ -40,7 +56,8 @@ createRoot(document.getElementById('root')!).render(
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes></Suspense>
         </Shell>
-      </HashRouter>
-    </NetworkProvider>
+        </NetworkProvider>
+      </AccountProvider>
+    </HashRouter>
   </QueryClientProvider>,
 )

@@ -1,0 +1,33 @@
+.practice-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, #e4705a 38%, transparent);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, #b64b3c 10%, var(--surface, #111827));
+  color: var(--text, #eff6ff);
+}
+.practice-banner > svg { flex: 0 0 auto; }
+.practice-banner div { flex: 1 1 12rem; min-width: 0; }
+.practice-banner strong, .practice-banner span { display: block; }
+.practice-banner span, .practice-location span, .practice-location p { color: var(--muted, #9cacc3); font-size: .78rem; }
+.practice-banner a { white-space: nowrap; }
+.practice-location { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.practice-location p { flex-basis: 100%; }
+.practice-submit .button { min-height: 46px; }
+.delivery-item .button { margin-top: 6px; }
+.delivery-item small { overflow-wrap: anywhere; }
+.command-toolbar { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; padding: 10px; border-bottom: 1px solid var(--line, #344155); }
+.command-toolbar .field-label { flex: 1 1 8.25rem; min-width: 0; }
+.command-toolbar input, .command-toolbar select { width: 100%; }
+.shelter-capacity { display: flex; overflow: hidden; min-height: 8px; background: color-mix(in srgb, var(--muted) 24%, transparent); }
+.shelter-capacity .shelter-admitted { background: #238d83; }
+.shelter-capacity .shelter-reserved { background: #c56324; }
+.shelter-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.shelter-tools label { flex: 1 1 13rem; }
+@media (max-width: 568px) {
+  .practice-banner { flex-wrap: wrap; align-items: start; }
+  .practice-banner a, .practice-submit .button { width: 100%; justify-content: center; min-height: 46px; }
+  .responder-action { width: 100%; justify-content: center; min-height: 48px; }
+}

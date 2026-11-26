@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.List;
@@ -221,6 +222,32 @@ class HydroGridIntegrationTest {
         } catch (NoSuchAlgorithmException impossible) {
             throw new IllegalStateException(impossible);
         }
+    }
+
+    @Test
+    void dashboardHoursMatchBengaluruTimeAndRemainScopedToTheirExercise() {
+        UUID exercise = UUID.randomUUID();
+        String coordinator = token(exercise, "COORDINATOR");
+        String dashboard = "/api/dashboard?hours=24";
+        var initial = get(dashboard, coordinator);
+        assertThat(initial.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(initial.getBody().path("summary").path("active").asInt()).isEqualTo(6);
+        assertThat(initial.getBody().path("summary").path("medianDispatch").isNull()).isTrue();
+        assertThat(initial.getBody().path("activity")).allSatisfy(bucket ->
+                assertThat(Instant.parse(bucket.path("bucket").asText()).atZone(ZoneId.of("Asia/Kolkata")).getMinute())
+                        .isZero());
+        assertThat(StreamSupport.stream(initial.getBody().path("activity").spliterator(), false)
+                .mapToInt(bucket -> bucket.path("reported").asInt()).sum()).isEqualTo(6);
+
+        String reportId = createIncident(coordinator);
+        String review = "/api/incidents/" + reportId;
+        var reviewed = post(review + "/triage", coordinator, Map.of("severity", "HIGH", "reason", "Field verification"));
+        assertThat(reviewed.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(get(review + "/timeline", coordinator).getBody().toString()).contains("Field verification");
+        assertThat(get(dashboard, coordinator).getBody().path("summary").path("active").asInt()).isEqualTo(7);
+        assertThat(get(dashboard, token(UUID.randomUUID(), "COORDINATOR"))
+                .getBody().path("summary").path("active").asInt()).isEqualTo(6);
+        assertThat(get(dashboard, token(exercise, "CITIZEN")).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test

@@ -1,8 +1,16 @@
-# HydroGrid
+# HydroGrid 2.0
 
-HydroGrid pairs a flood-response exercise with a live Bengaluru view. The exercise compares two dispatch policies on the same scenario and lets coordinators, citizens, responders, and shelter operators practice under constrained connectivity.
+**Every SOS Counts.**
 
-Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [City operations](https://hydrogrid-demo-7v9f.onrender.com/#/operations) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
+HydroGrid is an emergency coordination prototype with an operational intelligence dashboard, a flood-response exercise, and a sourced Bengaluru view. The exercise compares two dispatch policies on the same scenario and lets coordinators, citizens, responders, and shelter operators practice under constrained connectivity.
+
+Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [City operations](https://hydrogrid-demo-7v9f.onrender.com/#/operations) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md) · [2.0 release notes and rollback](docs/release-2.0.md)
+
+## Dashboard preview
+
+![HydroGrid 2.0 operations dashboard showing exercise KPIs, the Bengaluru map and a critical queue](docs/screenshots/dashboard-dark.png)
+
+[Mobile practice SOS in light mode](docs/screenshots/practice-sos-mobile.png)
 
 ## Run the demo
 
@@ -15,7 +23,7 @@ docker compose logs -f app
 
 Open [HydroGrid on localhost](http://127.0.0.1:8080/) once the Spring Boot app starts. The app and API share one origin. Docker publishes the web port to loopback and keeps PostgreSQL on the Compose network. Set `HYDROGRID_PORT` to use another local port.
 
-Each browser opens an isolated demo workspace containing fictional reports, resources, and map locations. The app gives that workspace short-lived demo tokens for each role. The Citizen SOS screen accepts fictional reports and saves unsent actions on the device. Keep the app open or reopen it with connectivity to synchronize pending actions.
+Each browser opens an isolated, owner-bound exercise containing fictional reports, resources, and map locations. Citizen registration and sign-in use a separate account scope. The app gives that workspace short-lived demo tokens for each role. The Citizen SOS screen accepts fictional reports and saves unsent actions on the device. Keep the app open or reopen it with connectivity to synchronize pending actions.
 
 ```sh
 docker compose down
@@ -27,6 +35,8 @@ Compose preserves the database between starts. The private field workspace is di
 
 | Page | What to demonstrate |
 | --- | --- |
+| Operations dashboard | Review actual exercise records, chart filters, current shelter spaces, and committed activity. |
+| Incident management and rescue units | Search and filter reports or resources, inspect evidence, and open the relevant command or mission view. |
 | Overview | Launch the exercise and see how the pages fit together. |
 | Live Bengaluru | Explore mapped streets, route between landmarks, check current modeled weather and official bulletins, or join a private GPS test. |
 | City operations | Find official channels and, with enrolled access, review credentials-backed traffic events or record sourced field observations and confirmed handoffs. |

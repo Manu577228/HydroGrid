@@ -1,64 +1,86 @@
-import { useQuery } from '@tanstack/react-query'
-import { Ambulance, ArrowRight, ArrowUpRight, Construction, Crosshair, Droplets, FlaskConical, HousePlus, MapPinned, Radio, Siren } from 'lucide-react'
+import {
+  ArrowRight, ArrowUpRight, Braces, CloudUpload, Crosshair, FlaskConical,
+  Github, HousePlus, MapPinned, Radio, ShieldCheck, Siren, Workflow,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { api } from '../api'
-import { OperatingMap } from '../components/Map'
-import { Empty, ErrorNotice, Loading, PanelTitle } from '../components/ui'
-import { useNetwork } from '../network'
 
-const actions = [
-  { title: 'Send a practice SOS', copy: 'Report a fictional emergency. It stays on this device through an outage and sends when you reconnect.', icon: Siren, route: '/sos' },
-  { title: 'Update a rescue mission', copy: 'Check the route and mark when the team leaves, arrives, or finishes the rescue.', icon: Radio, route: '/responder' },
-  { title: 'Find space at a shelter', copy: 'See which shelters have room, reserve places, and check people in when they arrive.', icon: HousePlus, route: '/shelters' },
+const workflow = [
+  { title: 'Report an SOS', copy: 'Keep a practice report on the device through a network outage and synchronize it when the connection returns.', icon: CloudUpload, to: '/sos' },
+  { title: 'Triage and dispatch', copy: 'Review priority, compare unit fit and pick a route that avoids mapped exercise hazards.', icon: Crosshair, to: '/command' },
+  { title: 'Advance the mission', copy: 'Record departure, arrival and completion. Offline progress syncs with the incident timeline.', icon: Radio, to: '/responder' },
+  { title: 'Coordinate shelter', copy: 'Reserve capacity and check people in, with separate space counts for both steps.', icon: HousePlus, to: '/shelters' },
+]
+
+const capabilities = [
+  {
+    icon: FlaskConical, title: 'Compare response strategies', to: '/simulation', action: 'Open simulation lab',
+    detail: 'Replay identical incidents, roads and constraints with FIFO and HydroGrid dispatch. See the measured tradeoffs for each seed.',
+  },
+  {
+    icon: MapPinned, title: 'Explore Bengaluru', to: '/live', action: 'View live Bengaluru',
+    detail: 'Inspect mapped streets, current weather model estimates and official bulletins. Each layer carries its source and update time.',
+  },
+  {
+    icon: Workflow, title: 'Review the exercise record', to: '/analytics', action: 'Open analytics and audit',
+    detail: 'Review incident activity, mission outcomes and the operational decisions behind the results.',
+  },
 ]
 
 export function Overview() {
-  const { offline } = useNetwork()
-  const graph = useQuery({ queryKey: ['graph'], queryFn: () => api.graph(), enabled: !offline })
-  const incidents = useQuery({ queryKey: ['incidents'], queryFn: () => api.incidents(), enabled: !offline })
-  const units = useQuery({ queryKey: ['units'], queryFn: () => api.units(), enabled: !offline })
-  const open = incidents.data?.filter((incident) => incident.status !== 'RESOLVED')
-  const available = units.data?.filter((unit) => unit.status === 'AVAILABLE')
-  const metrics = [
-    { icon: Siren, label: 'Open SOS reports', value: open?.length },
-    { icon: Ambulance, label: 'Units available', value: available?.length },
-    { icon: Construction, label: 'Roads closed', value: graph.data?.blockedRoadIds.length },
-  ]
   return <>
-    <section className="overview-hero" aria-labelledby="overview-title">
-      <img className="hero-image" src="/hydrogrid-aerial.webp" alt="" fetchPriority="high" />
-      <div className="hero-content">
-        <div className="hero-label"><Droplets size={17} aria-hidden="true" /> Flood response simulator</div>
-        <h1 id="overview-title">Coordinate rescues <span>through the storm.</span></h1>
-        <p>Test how a city responds when roads flood and networks fail. Practice sending an SOS, dispatch a rescue, and see how different decisions change the outcome.</p>
-        <div className="hero-actions">
-          <Link className="button button-lime button-lg" to="/command"><Crosshair size={18} aria-hidden="true" /> Open command center</Link>
-          <Link className="button button-dark-outline button-lg" to="/live"><MapPinned size={18} aria-hidden="true" /> Explore live Bengaluru</Link>
-          <Link className="button button-dark-outline button-lg" to="/simulation"><FlaskConical size={18} aria-hidden="true" /> Run a simulation</Link>
+    <section className="landing-hero" aria-labelledby="landing-title">
+      <div className="landing-lead">
+        <div className="landing-context"><ShieldCheck size={15} aria-hidden="true" /> Disaster response exercise</div>
+        <h1 id="landing-title">Every SOS <em>Counts.</em></h1>
+        <p>Coordinate a response when roads close and connections fail. Follow a report from the outbox to dispatch, field updates and shelter admission.</p>
+        <div className="landing-actions">
+          <Link className="button button-primary button-lg" to="/dashboard">Start interactive demo <ArrowRight size={17} aria-hidden="true" /></Link>
+          <Link className="button button-outline button-lg" to="/sos"><Siren size={17} aria-hidden="true" /> Practice SOS</Link>
         </div>
+        <span className="landing-instant">Open the exercise without an account.</span>
       </div>
-      <p className="hero-scene-caption"><MapPinned size={15} aria-hidden="true" /> Fictional flood scene inspired by Bengaluru</p>
+      <figure className="landing-scene">
+        <img src="/hydrogrid-aerial.webp" alt="Illustration of a flooded canal and road bridge at dusk" fetchPriority="high" />
+        <figcaption><MapPinned size={15} aria-hidden="true" /><span>Bengaluru-inspired exercise illustration</span></figcaption>
+      </figure>
     </section>
 
-    <section className="overview-paths" aria-labelledby="overview-paths-heading">
-      <h2 id="overview-paths-heading">Take part in the exercise</h2>
-      <div className="overview-links">
-        {actions.map(({ title, copy, icon: Icon, route }) => <Link to={route} className="feature-card panel" key={route}>
-          <div className="feature-top"><span className="metric-icon"><Icon size={21} aria-hidden="true" /></span><ArrowUpRight size={19} aria-hidden="true" /></div>
-          <h3>{title}</h3><p>{copy}</p>
-        </Link>)}
+    <section className="landing-section" aria-labelledby="workflow-title">
+      <header><h2 id="workflow-title">Follow one report through the response</h2><p>Choose a stage to try it in the exercise.</p></header>
+      <ol className="landing-flow">
+        {workflow.map(({ title, copy, icon: Icon, to }) => <li key={title}><Link to={to} className="landing-stage">
+          <span className="landing-stage-icon"><Icon size={20} aria-hidden="true" /></span>
+          <span><strong>{title}</strong><small>{copy}</small></span>
+          <ArrowUpRight className="landing-stage-arrow" size={16} aria-hidden="true" />
+        </Link></li>)}
+      </ol>
+    </section>
+
+    <section className="landing-section" aria-labelledby="capability-title">
+      <header><h2 id="capability-title">Run the exercise. Inspect the evidence.</h2></header>
+      <div className="landing-capabilities">
+        {capabilities.map(({ icon: Icon, title, detail, action, to }) => <article key={title}>
+          <span className="landing-stage-icon"><Icon size={21} aria-hidden="true" /></span>
+          <h3>{title}</h3><p>{detail}</p>
+          <Link to={to}>{action}<ArrowRight size={15} aria-hidden="true" /></Link>
+        </article>)}
       </div>
     </section>
 
-    <section className="overview-map-panel hero-visual panel" aria-label="Exercise operating map">
-      <PanelTitle icon={<MapPinned size={18} />} title="Exercise operating map" detail="Fictional road network and response activity in your workspace" />
-      <ul className="hero-proof">
-        {metrics.map(({ icon: Icon, label, value }) => <li className="hero-proof-item" key={label}>
-          <Icon size={18} aria-hidden="true" /><div><small>{label}</small><strong>{value ?? '—'}</strong></div>
-        </li>)}
-      </ul>
-      {graph.data ? <OperatingMap graph={graph.data} incidents={open} units={units.data} className="overview-map" /> : offline ? <Empty>The road graph loads when HydroGrid is reachable.</Empty> : graph.isError ? <ErrorNotice error={graph.error} /> : <Loading label="Loading operating map" />}
-      <div className="hero-visual-footer"><Link className="text-link" to="/command">Open full command map <ArrowRight size={16} aria-hidden="true" /></Link></div>
+    <section className="landing-project" aria-labelledby="project-title">
+      <article><Braces size={21} aria-hidden="true" /><div><h2 id="project-title">About HydroGrid</h2>
+        <p>HydroGrid uses React, Spring Boot, PostgreSQL and PostGIS to test offline reporting, spatial routing and coordinated response. The simulation lab compares dispatch strategies using repeatable scenario inputs.</p>
+        <a href="https://github.com/Manu577228/HydroGrid" target="_blank" rel="noreferrer"><Github size={15} aria-hidden="true" /> View project on GitHub <ArrowUpRight size={14} aria-hidden="true" /></a>
+      </div></article>
+      <article><ShieldCheck size={21} aria-hidden="true" /><div><h2>Exercise boundaries</h2>
+        <p>Practice reports and missions stay in the exercise workspace. Live Bengaluru lists its data sources and their coverage. In India, use the official 112 number for emergencies.</p>
+        <Link to="/operations">Official information channels <ArrowRight size={15} aria-hidden="true" /></Link>
+      </div></article>
     </section>
+
+    <footer className="landing-footer">
+      <strong>HydroGrid</strong>
+      <nav aria-label="Account options"><Link to="/login">Sign in</Link><Link to="/register">Create account</Link></nav>
+    </footer>
   </>
 }

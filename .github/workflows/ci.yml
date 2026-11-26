@@ -37,7 +37,7 @@ jobs:
       - run: docker compose up -d --build --wait
       - name: Wait for HydroGrid to accept requests
         run: |
-          curl --fail --silent --show-error --retry 25 --retry-delay 2 --retry-connrefused \
+          curl --fail --silent --show-error --max-time 5 --retry 25 --retry-delay 2 --retry-all-errors \
             http://127.0.0.1:8080/api/health
       - run: npm test
         working-directory: e2e

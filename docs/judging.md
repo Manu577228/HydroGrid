@@ -49,6 +49,7 @@ The redesigned Docker build passed **nine Playwright checks**, including offline
 
 | Proof | Expected evidence |
 | --- | --- |
+| Agency data qualification | Verify provider authentication and compare the newest published traffic report against the query window. Exercise scoped operator writes and the manual handoff audit in PostGIS. [Provider and onboarding evidence](operations.md) · [Browser operations test](../e2e/tests/operations.spec.mjs) |
 | Sourced Bengaluru view | Compare routes between seven nearby landmarks on OpenStreetMap geometry, verify the official Karnataka bulletin source, and share a test location between two authorized devices. [Data scope](../README.md#live-bengaluru) · [Browser tests](../e2e/tests/live.spec.mjs) · [Alert feed tests](../backend/src/test/java/com/hydrogrid/api/AlertFeedTest.java) |
 | Offline durability | Playwright disconnects Chromium and reloads the previously opened app. After reconnecting, one queued SOS creates one incident, and two queued responder milestones appear once each in the incident timeline. [Browser tests](../e2e/tests/browser.spec.mjs) |
 | Dispatch and shelter contention | Two concurrent requests targeting the same unit yield one assignment. Concurrent shelter reservations protect capacity. [PostGIS integration tests](../backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java) |

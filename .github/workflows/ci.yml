@@ -24,6 +24,8 @@ jobs:
   release:
     runs-on: ubuntu-24.04
     env:
+      HYDROGRID_OPERATOR_ACCOUNTS: qa-operator:COORDINATOR:bf58262ea005813c0ea7f5076c02812cb83591e6afb66b22420244b8278540af
+      HYDROGRID_TEST_OPERATOR_CODE: local-ci-only-ops-coordinator-access-code
       HYDROGRID_FIELD_ACCESS_CODE: local-ci-only-field-workspace-access-code
       HYDROGRID_TEST_FIELD_ACCESS_CODE: local-ci-only-field-workspace-access-code
     steps:

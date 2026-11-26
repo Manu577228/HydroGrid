@@ -1,6 +1,6 @@
 # Working on HydroGrid
 
-HydroGrid includes a synthetic disaster response exercise and a sourced Bengaluru view. Keep simulated response recommendations distinct from public street, weather, and bulletin data. Device locations and test SOS reports require private field access.
+HydroGrid includes a synthetic disaster response exercise and a sourced Bengaluru view. Keep simulated response recommendations distinct from public street, weather, and bulletin data. Device locations and test SOS reports require private field access. Agency operations require an independently enrolled operator. Attribute and timestamp observations and keep handoff references private.
 
 - Start with `docker compose up --build` from the repository root.
 - Keep the frontend and API on the same origin. Preserve the `/api` and `/ws` contracts and the hash-based page routes.

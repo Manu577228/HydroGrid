@@ -14,6 +14,7 @@ import './styles.css'
 const AnalyticsPage = lazy(() => import('./pages/Analytics').then((page) => ({ default: page.AnalyticsPage })))
 const CommandPage = lazy(() => import('./pages/Command').then((page) => ({ default: page.CommandPage })))
 const LivePage = lazy(() => import('./pages/Live').then((page) => ({ default: page.LivePage })))
+const OperationsPage = lazy(() => import('./pages/Operations').then((page) => ({ default: page.OperationsPage })))
 const ResponderPage = lazy(() => import('./pages/Responder').then((page) => ({ default: page.ResponderPage })))
 const ShelterPage = lazy(() => import('./pages/Shelter').then((page) => ({ default: page.ShelterPage })))
 const SimulationPage = lazy(() => import('./pages/Simulation').then((page) => ({ default: page.SimulationPage })))
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/" element={<Overview />} />
             <Route path="/command" element={<CommandPage />} />
             <Route path="/live" element={<LivePage />} />
+            <Route path="/operations" element={<OperationsPage />} />
             <Route path="/sos" element={<SosPage />} />
             <Route path="/responder" element={<ResponderPage />} />
             <Route path="/shelters" element={<ShelterPage />} />

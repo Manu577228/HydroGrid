@@ -77,12 +77,13 @@ test('a responder can complete a mission offline and replay both milestones once
   expect(milestones.map(({ type }) => type).sort()).toEqual(['MISSION_ON_SCENE', 'MISSION_RESOLVED']);
 });
 
-test('the mobile navigation reaches HydroGrid’s eight pages', async ({ page }) => {
+test('the mobile navigation reaches HydroGrid’s nine pages', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const links = [
     ['Command center', 'command'],
     ['Live Bengaluru', 'live'],
+    ['City operations', 'operations'],
     ['Citizen SOS', 'sos'],
     ['Responder console', 'responder'],
     ['Shelters', 'shelters'],

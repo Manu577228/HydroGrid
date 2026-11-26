@@ -41,9 +41,10 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(access -> access
-                        .requestMatchers(HttpMethod.GET, "/api/health", "/api/graph", "/api/field/status", "/api/live/alerts").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/demo", "/api/field/access").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/health", "/api/graph", "/api/field/status", "/api/live/alerts", "/api/ops/status").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/demo", "/api/field/access", "/api/ops/access").permitAll()
                         .requestMatchers("/api/field/**").hasRole("FIELD")
+                        .requestMatchers("/api/ops/**").hasRole("OPS")
                         .requestMatchers("/api/**").hasAnyRole("COORDINATOR", "RESPONDER", "SHELTER", "CITIZEN")
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.HEAD, "/**").permitAll()

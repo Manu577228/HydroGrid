@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { latLngBounds, type LatLngTuple } from 'leaflet'
 import { ArrowDownUp, Crosshair, LocateFixed, MapPin, MapPinned, Minus, Plus, Route, Satellite, ShieldCheck } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Circle, CircleMarker, MapContainer, Polyline, Tooltip, useMap } from 'react-leaflet'
 import { FieldPanel } from '../components/FieldPanel'
 import { AlertsPanel, WeatherPanel } from '../components/LiveConditions'
@@ -154,11 +155,11 @@ export function LivePage() {
 
   return <div className="live-page">
     <PageTitle title="Live Bengaluru" description="Explore central Bengaluru streets, check weather and official bulletins, and see where your device is."
-      icon={<MapPinned />} actions={<Button variant="secondary" size="sm" onClick={() => {
+      icon={<MapPinned />} actions={<><Link className="button button-outline button-sm" to="/operations">City operations</Link><Button variant="secondary" size="sm" onClick={() => {
         const board = document.getElementById('private-field-board')
         board?.focus({ preventScroll: true })
         board?.scrollIntoView({ block: 'start' })
-      }}><ShieldCheck size={16} /> Private field test</Button>} />
+      }}><ShieldCheck size={16} /> Private field test</Button></>} />
     <div className="live-grid">
       <section className="panel live-map-panel" id="live-street-map">
         <PanelTitle icon={<MapPinned size={21} />} title="Street map" detail="OpenStreetMap · Central Bengaluru coverage"

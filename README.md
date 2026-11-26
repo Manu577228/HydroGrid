@@ -2,7 +2,7 @@
 
 HydroGrid pairs a flood-response exercise with a live Bengaluru view. The exercise compares two dispatch policies on the same scenario and lets coordinators, citizens, responders, and shelter operators practice under constrained connectivity.
 
-Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
+Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [City operations](https://hydrogrid-demo-7v9f.onrender.com/#/operations) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
 
 ## Run the demo
 
@@ -29,6 +29,7 @@ Compose preserves the database between starts. The private field workspace is di
 | --- | --- |
 | Overview | Launch the exercise and see how the pages fit together. |
 | Live Bengaluru | Explore mapped streets, route between landmarks, check current modeled weather and official bulletins, or join a private GPS test. |
+| City operations | Find official channels and, with enrolled access, review credentials-backed traffic events or record sourced field observations and confirmed handoffs. |
 | Command center | See ranked reports, route recommendations, unit fit, hazards, and dispatch status. |
 | Citizen SOS | Save a synthetic report offline and confirm delivery after reconnecting. |
 | Responder console | Advance the assigned mission through en route, on scene, and resolved. |
@@ -54,6 +55,10 @@ The public exercise uses simulated incidents, dispatch, flood polygons, closures
 For a trusted test group, set `HYDROGRID_FIELD_ACCESS_CODE` to a password-manager-generated code of at least 32 random characters. Set it in the service environment for a hosted deployment and redeploy, or set it in the shell before running Compose. Use HTTPS on phones. Open **Live Bengaluru**, unlock **Private field test** on each trusted device, and allow location when you choose **Enable device location**. The workspace shows the latest position per sharing device. Stop sharing to remove your position, or it disappears from the board five minutes after the last update. Test SOS reports are visible for 24 hours. Both expire from active storage through scheduled cleanup. When the free host sleeps, cleanup runs after the app wakes and the scheduled interval elapses.
 
 Store the code outside Git, rotate it to revoke previously issued access tokens, and share it only with people authorized to see every position and report in that workspace. Sessions expire after eight hours. Test SOS is a private exercise with a real GPS fix. For emergencies, call 112.
+
+## City operations
+
+The City operations page connects residents to the official flood, traffic, shelter coordination, and 112 channels. The private workspace supports agency observations and a manual handoff log. The authenticated Bengaluru Traffic Police connector uses the IUDX catalogue and resource APIs. See [data access and operator onboarding](docs/operations.md).
 
 ## Verify
 

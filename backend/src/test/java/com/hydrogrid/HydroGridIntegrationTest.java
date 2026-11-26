@@ -22,7 +22,13 @@ import org.testcontainers.utility.DockerImageName;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,6 +48,10 @@ import static org.awaitility.Awaitility.await;
         properties = "hydrogrid.field-access-code=" + HydroGridIntegrationTest.TEST_FIELD_CODE)
 class HydroGridIntegrationTest {
     static final String TEST_FIELD_CODE = "test-only-field-workspace-access-code";
+    private static final String FLOOD_CODE = "integration-test-only-flood-account-code";
+    private static final String DISPATCH_CODE = "integration-test-only-dispatch-account-code";
+    private static final String VIEWER_CODE = "integration-test-only-traffic-viewer-access";
+    private static final String COORDINATOR_CODE = "integration-test-only-ops-coordinator-code";
 
     @Container
     static final PostgreSQLContainer<?> POSTGIS = new PostgreSQLContainer<>(DockerImageName.parse(
@@ -53,6 +63,10 @@ class HydroGridIntegrationTest {
         registry.add("spring.datasource.url", POSTGIS::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGIS::getUsername);
         registry.add("spring.datasource.password", POSTGIS::getPassword);
+        registry.add("hydrogrid.operator-accounts", () -> String.join(",",
+                "qa-flood:FLOOD:" + sha256(FLOOD_CODE), "qa-dispatch:DISPATCH:" + sha256(DISPATCH_CODE),
+                "qa-coordinator:COORDINATOR:" + sha256(COORDINATOR_CODE),
+                "qa-viewer:TRAFFIC_VIEWER:" + sha256(VIEWER_CODE)));
     }
 
     @Autowired
@@ -115,6 +129,98 @@ class HydroGridIntegrationTest {
         var response = http.postForEntity("/api/field/access", Map.of("code", TEST_FIELD_CODE), JsonNode.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return response.getBody().path("token").asText();
+    }
+
+    @Test
+    void operatorObservationsRequireTheCorrectScopeAndPreserveFreshProvenance() {
+        String boardPath = "/api/ops/board";
+        String observationsPath = "/api/ops/observations";
+        assertThat(http.getForEntity("/api/ops/status", JsonNode.class).getBody().path("available").asBoolean()).isTrue();
+        assertThat(http.getForEntity(boardPath, JsonNode.class).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(get(boardPath, fieldToken()).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(get(boardPath, token(UUID.randomUUID(), "COORDINATOR")).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        var wrongAccount = http.postForEntity("/api/ops/access", Map.of("operator", "qa-flood", "code", DISPATCH_CODE), JsonNode.class);
+        assertThat(wrongAccount.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        String flood = operatorToken("qa-flood", FLOOD_CODE);
+        String dispatch = operatorToken("qa-dispatch", DISPATCH_CODE);
+        assertThat(get("/api/field/board", flood).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(get("/api/ops/traffic-feed", flood).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(get("/api/ops/traffic-feed", operatorToken("qa-coordinator", COORDINATOR_CODE))
+                .getBody().path("status").asText()).isEqualTo("not_configured");
+        var board = get(boardPath, flood);
+        assertThat(board.getHeaders().getCacheControl()).contains("no-store");
+        assertThat(board.getBody().path("scope").asText()).isEqualTo("FLOOD");
+
+        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        String site = "test-" + UUID.randomUUID();
+        var observation = Map.of("kind", "FLOOD", "siteId", site, "label", "QA water depth site",
+                "lat", 12.98, "lng", 77.60, "observedAt", now, "sourceRef", "qa-reading-1", "value", 24);
+        assertThat(post(observationsPath, dispatch, observation).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        var saved = post(observationsPath, flood, observation);
+        assertThat(saved.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(saved.getBody().path("reportedBy").asText()).isEqualTo("qa-flood");
+        assertThat(Instant.parse(saved.getBody().path("expiresAt").asText())).isEqualTo(now.plus(Duration.ofMinutes(30)));
+        assertThat(post(observationsPath, flood, observation).getBody()).isEqualTo(saved.getBody());
+
+        String viewer = operatorToken("qa-viewer", VIEWER_CODE);
+        assertThat(get(boardPath, viewer).getBody().path("observations").isEmpty()).isTrue();
+        assertThat(get("/api/ops/traffic-feed", viewer).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(post(observationsPath, viewer, observation).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+        var older = new java.util.HashMap<String, Object>(observation);
+        older.put("observedAt", now.minusSeconds(60));
+        older.put("sourceRef", "qa-older-reading");
+        assertThat(post(observationsPath, flood, older).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        var matching = StreamSupport.stream(get(boardPath, flood).getBody().path("observations").spliterator(), false)
+                .filter(row -> site.equals(row.path("siteId").asText())).toList();
+        assertThat(matching).singleElement().satisfies(row -> {
+            assertThat(row.path("sourceRef").asText()).isEqualTo("qa-reading-1");
+            assertThat(row.path("value").asDouble()).isEqualTo(24);
+        });
+    }
+
+    @Test
+    void operatorHandoffRequiresDispatcherAndReplaysOrderedTransitions() throws Exception {
+        String path = "/api/ops/handoffs";
+        String flood = operatorToken("qa-flood", FLOOD_CODE);
+        String dispatch = operatorToken("qa-dispatch", DISPATCH_CODE);
+        String coordinator = operatorToken("qa-coordinator", COORDINATOR_CODE);
+        UUID id = UUID.randomUUID();
+        String reference = "QA-EXTERNAL-" + id;
+        var relay = Map.of("id", id, "reference", reference, "state", "RELAYED");
+        var acknowledge = Map.of("id", id, "reference", reference, "expectedState", "RELAYED", "state", "ACKNOWLEDGED");
+        var close = Map.of("id", id, "reference", reference, "expectedState", "ACKNOWLEDGED", "state", "CLOSED");
+
+        assertThat(post(path, flood, relay).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(post(path, dispatch, acknowledge).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(post(path, dispatch, relay).getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(post(path, dispatch, close).getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        var attempts = race(() -> post(path, dispatch, acknowledge), () -> post(path, coordinator, acknowledge));
+        assertThat(attempts).allSatisfy(response -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK));
+        assertThat(attempts.getFirst().getBody()).isEqualTo(attempts.getLast().getBody());
+        assertThat(post(path, coordinator, close).getBody().path("state").asText()).isEqualTo("CLOSED");
+
+        assertThat(get("/api/ops/board", flood).getBody().path("handoffs").isEmpty()).isTrue();
+        var handoffs = get("/api/ops/board", dispatch).getBody().path("handoffs");
+        assertThat(StreamSupport.stream(handoffs.spliterator(), false)
+                .filter(row -> id.toString().equals(row.path("id").asText())).toList()).singleElement()
+                .satisfies(row -> assertThat(row.path("state").asText()).isEqualTo("CLOSED"));
+    }
+
+    private String operatorToken(String operator, String code) {
+        var access = http.postForEntity("/api/ops/access", Map.of("operator", operator, "code", code), JsonNode.class);
+        assertThat(access.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(access.getHeaders().getCacheControl()).contains("no-store");
+        return access.getBody().path("token").asText();
+    }
+
+    private static String sha256(String input) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(input.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException(impossible);
+        }
     }
 
     @Test

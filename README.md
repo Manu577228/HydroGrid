@@ -49,11 +49,29 @@ The backend tests use Java 21 and a Docker-backed PostgreSQL/PostGIS fixture.
 
 Run the browser tests while the Compose app is listening. Set `HYDROGRID_BASE_URL` to exercise a different deployment. `node deploy/benchmark.mjs` queries a running app and reproduces the [three fixed benchmark scenarios](docs/benchmarks.md).
 
+## Neon tooling in Codex
+
+The Neon skills live in `.agents/skills`. The project MCP configuration uses Neon's official HTTPS endpoint. Open this repository as a trusted Codex project and complete Neon OAuth on first use. The local `.neon` link is ignored by Git.
+
 ## Deploy on the free tier
 
-The root `Dockerfile` bundles the Vite build inside the Spring Boot jar. `render.yaml` provisions one Free Docker web service and one Free PostgreSQL 16 database in Singapore. It supplies private database connection details and a generated JWT secret. The Flyway migration enables PostGIS.
+The root `Dockerfile` bundles the Vite build inside the Spring Boot jar. The Render Blueprint provisions a Free Docker web service in Singapore and generates its JWT secret. Neon hosts PostgreSQL 16 with PostGIS.
 
-In Render, create a Blueprint from the Git repository with `main` and `render.yaml`. Confirm both resources show the Free plan. After deployment, open the web service URL and check `/api/health`. Render's free app can take about a minute to wake after inactivity. The free database expires 30 days after creation. [Render free tier](https://render.com/docs/free)
+1. Create a Neon Free project with PostgreSQL 16 in AWS Asia Pacific (Singapore). In its **Connect** dialog, turn off **Connection pooling** to get the direct host, database, role, and password. HydroGrid uses its own small JDBC pool and runs Flyway migrations during startup. The initial migration enables PostGIS using the database owner's role. [Neon regions](https://neon.com/docs/introduction/regions) · [Direct connections](https://neon.com/docs/connect/connection-pooling) · [PostGIS](https://neon.com/docs/extensions/postgis)
+2. In Render, create a Blueprint from the Git repository, using `main` and `render.yaml`. Confirm the service shows the Free plan. Enter these three values in Render's environment settings. The sample host and database are placeholders. [Render environment settings](https://render.com/docs/configure-environment-variables)
+
+   | Environment variable | Value |
+   | --- | --- |
+   | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<direct-neon-host>:5432/<database>?sslmode=verify-full&sslfactory=org.postgresql.ssl.DefaultJavaSSLFactory&channelBinding=require` |
+   | `SPRING_DATASOURCE_USERNAME` | Neon database owner's role from the Connect dialog |
+   | `SPRING_DATASOURCE_PASSWORD` | The role's password, stored in Render |
+
+   The URL uses the JVM trust store and verifies the database hostname. Store credentials in the Render environment. [Neon secure connections](https://neon.com/docs/connect/connect-securely) · [pgJDBC TLS settings](https://jdbc.postgresql.org/documentation/ssl/)
+3. After deployment, open the web service URL and verify that `/api/health` returns `UP` with `synthetic: true`. Open the Command Center to confirm the sample reports load. Render probes the web page so routine hosting checks let the database idle.
+
+For an existing Render deployment, sync the updated Blueprint and enter the three settings directly on the service. In the same environment edit, remove the legacy `HYDROGRID_DATABASE_URL` so the entrypoint uses the new JDBC URL. To carry existing demo sessions forward, restore a backup into the Neon database before the cutover. An empty Neon database starts with freshly initialized exercise state. [Updating Blueprint secrets](https://render.com/docs/blueprint-spec#setting-environment-variables) · [Neon backups and restores](https://neon.com/docs/manage/backup-pg-dump)
+
+Render Free provides 750 instance hours per workspace per calendar month. The web service spins down after 15 idle minutes and can take about a minute to wake. Neon Free has no time limit and includes 1 GB of storage, 100 compute-unit hours per month, and 5 GB of public transfer per project per month. Neon suspends compute after five minutes of database inactivity. [Render Free](https://render.com/docs/free) · [Neon Free](https://neon.com/pricing)
 
 ### Temporary public preview
 

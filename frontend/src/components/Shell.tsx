@@ -1,6 +1,6 @@
 import {
   Activity, ArrowUpRight, Bell, ChevronDown, CircleHelp, Droplets, FlaskConical, Home,
-  HousePlus, LayoutDashboard, Menu, Radio, ShieldCheck, Siren, Wifi, WifiOff, X,
+  HousePlus, LayoutDashboard, MapPinned, Menu, Radio, ShieldCheck, Siren, Wifi, WifiOff, X,
 } from 'lucide-react'
 import { type PropsWithChildren, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
@@ -11,6 +11,7 @@ import { Button, cn } from './ui'
 const links = [
   { href: '/', label: 'Overview', icon: Home },
   { href: '/command', label: 'Command center', icon: LayoutDashboard },
+  { href: '/live', label: 'Live Bengaluru', icon: MapPinned },
   { href: '/sos', label: 'Citizen SOS', icon: Siren },
   { href: '/responder', label: 'Responder console', icon: Radio },
   { href: '/shelters', label: 'Shelters', icon: HousePlus },

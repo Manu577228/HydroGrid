@@ -33,6 +33,7 @@ export function Overview() {
         <p>Test how a city responds when roads flood and networks fail. Practice sending an SOS, dispatch a rescue, and see how different decisions change the outcome.</p>
         <div className="hero-actions">
           <Link className="button button-lime button-lg" to="/command"><Crosshair size={18} aria-hidden="true" /> Open command center</Link>
+          <Link className="button button-dark-outline button-lg" to="/live"><MapPinned size={18} aria-hidden="true" /> Explore live Bengaluru</Link>
           <Link className="button button-dark-outline button-lg" to="/simulation"><FlaskConical size={18} aria-hidden="true" /> Run a simulation</Link>
         </div>
       </div>

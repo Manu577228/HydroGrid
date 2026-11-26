@@ -1,6 +1,6 @@
 # Working on HydroGrid
 
-HydroGrid is a synthetic disaster response exercise. Preserve the synthetic data boundary in public deployments and keep routing recommendations clearly labeled as simulated.
+HydroGrid includes a synthetic disaster response exercise and a sourced Bengaluru view. Keep simulated response recommendations distinct from public street, weather, and bulletin data. Device locations and test SOS reports require private field access.
 
 - Start with `docker compose up --build` from the repository root.
 - Keep the frontend and API on the same origin. Preserve the `/api` and `/ws` contracts and the hash-based page routes.

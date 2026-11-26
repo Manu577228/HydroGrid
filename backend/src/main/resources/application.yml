@@ -29,3 +29,4 @@ hydrogrid:
   demo-enabled: ${HYDROGRID_DEMO_ENABLED:true}
   jwt-secret: ${HYDROGRID_JWT_SECRET:}
   allow-custom-reports: ${HYDROGRID_ALLOW_CUSTOM_REPORTS:false}
+  field-access-code: ${HYDROGRID_FIELD_ACCESS_CODE:}

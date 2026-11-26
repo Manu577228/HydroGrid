@@ -1,0 +1,210 @@
+.live-page {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  --live-muted: #a8bed5;
+  --live-border: #8eb7df33;
+  --live-sheen: linear-gradient(150deg, #41668536, #182a4530 52%, #172b3d26);
+  --live-route: #98fff0;
+  --live-shadow: 0 16px 45px #02091040, inset 0 1px #c2e2fe10;
+}
+
+.live-page .panel {
+  background-image: var(--live-sheen);
+  box-shadow: var(--live-shadow);
+}
+
+.live-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.15fr) minmax(280px, .93fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.live-map-side, .live-route-body, .live-device-body, .live-field-body, .live-weather-body {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.live-map-side {
+  grid-auto-rows: auto;
+  gap: 16px;
+}
+
+.live-map-panel {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  scroll-margin-block-start: 75px;
+  overflow: hidden;
+}
+
+.live-map-source-date {
+  font-size: .68rem;
+  color: var(--live-muted);
+  white-space: nowrap;
+}
+
+.live-map-wrap, .live-map-unavailable {
+  position: relative;
+  min-height: clamp(350px, 43vw, 490px);
+}
+
+.live-map-unavailable { display: grid; justify-content: center; align-content: center; gap: 12px; padding: 12px; }
+.live-map-unavailable .button { justify-self: center; }
+
+.live-map {
+  height: 100%;
+  min-height: inherit;
+  isolation: isolate;
+  background-color: #061928;
+  background-image: radial-gradient(ellipse at 50% 60%, #112e42 0, transparent 72%),
+    linear-gradient(#7996af13 1px, transparent 1px), linear-gradient(90deg, #7996af13 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
+}
+
+.live-map .leaflet-tooltip {
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+
+.live-map-controls, .live-map-anchor, .live-map-legend {
+  position: absolute;
+  z-index: 600;
+  border: 1px solid #9ac6e85e;
+  background: #11283df0;
+  box-shadow: 0 4px 14px #03101a9c, inset 0 1px #e5f4ff1f;
+  backdrop-filter: blur(12px);
+}
+
+.live-map-controls {
+  inset: 12px 12px auto auto;
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.live-map-controls .button { min-width: 37px; min-height: 37px; }
+
+.live-map-anchor, .live-map-legend {
+  display: flex;
+  align-items: center;
+  color: #e0efff;
+  padding: 6px 9px;
+  border-radius: 9px;
+  font-size: .71rem;
+  pointer-events: none;
+}
+
+.live-map-anchor { inset: 12px auto auto 12px; gap: 5px; }
+.live-map-anchor svg { color: #a1f4e8; }
+.live-map-legend { inset: auto auto 11px 12px; flex-wrap: wrap; gap: 5px 10px; max-width: calc(100% - 24px); }
+.live-map-legend span, .live-weather-metrics dt { display: inline-flex; align-items: center; gap: 5px; }
+.live-map-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+
+.live-route-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-route-inputs label { grid-column: 1; }
+.live-route-swap { grid-column: 2; grid-row: 1 / 3; justify-self: center; }
+.live-route-result, .live-board-status, .live-device-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 45px;
+  padding: 9px 11px;
+  border: 1px solid #8fafc939;
+  border-radius: 10px;
+  background: #051a2975;
+  color: #ddecfc;
+  font-size: .8rem;
+}
+
+.live-route-result { border-color: #7be7d751; background: #1c58524f; }
+.live-route-result svg, .live-board-status svg { color: var(--live-route); flex: 0 0 auto; }
+.live-route-result span, .live-board-status span, .live-device-status small { display: block; color: #b9cedf; font-size: .7rem; line-height: 1.4; margin-top: 2px; }
+.live-device-status { align-items: flex-start; gap: 1px; flex-direction: column; }
+.live-device-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.live-copy { color: var(--live-muted); font-size: .76rem; line-height: 1.55; }
+
+.live-source-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.live-source-grid > .panel { display: grid; grid-template-rows: auto 1fr auto; }
+
+.live-sources { flex-wrap: wrap; gap: 6px 12px; }
+.live-sources a, .live-bulletin-list a { color: #b7eaff; text-decoration: underline; text-decoration-color: #a9c9e68c; text-underline-offset: 3px; }
+.live-sources a:hover, .live-bulletin-list a:hover { color: #e1fbff; }
+.live-feed-state {
+  width: fit-content;
+  padding: 4px 9px;
+  border: 1px solid #76d4bd66;
+  border-radius: 6px;
+  background: #1e594b75;
+  color: #c8fff1;
+  font-size: .7rem;
+  font-weight: 650;
+}
+.live-feed-warning { background: #5b442e8c; border-color: #deb77d70; color: #ffe1aa; }
+.live-temperature { display: flex; align-items: center; gap: 8px; color: #dff3ff; }
+.live-temperature svg { color: #a4ecff; }
+.live-temperature strong { font-family: "Manrope Variable", sans-serif; font-size: 2.6rem; letter-spacing: -.075em; line-height: 1.05; }
+.live-temperature span { color: #bdd4e8; font-size: .8rem; line-height: 1.4; }
+.live-weather-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.live-weather-metrics > div {
+  padding: 8px 9px;
+  min-width: 0;
+  border: 1px solid var(--live-border);
+  border-radius: 8px;
+  background: #081d30a0;
+}
+
+.live-weather-metrics dt { color: #bbdaf1; font-size: .72rem; }
+.live-weather-metrics dt svg { color: #a2e8f8; flex-shrink: 0; }
+.live-weather-metrics dd { margin: 4px 0 1px; color: #eff8ff; font-weight: 780; font-size: .89rem; }
+.live-weather-metrics small { display: block; color: var(--live-muted); font-size: .68rem; }
+
+.live-field { scroll-margin-block-start: 75px; }
+.live-unlock { display: grid; grid-template-columns: minmax(0, 290px) auto; gap: 8px; align-items: end; justify-content: start; }
+.live-unlock .button { min-height: 38px; }
+.live-field-body > p { color: var(--live-muted); font-size: .8rem; }
+.live-field-controls, .live-board-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.live-field-card { display: grid; align-content: start; gap: 10px; border: 1px solid var(--live-border); border-radius: 10px; padding: 12px; background: #091c30a0; min-width: 0; }
+.live-field-card h3 { display: flex; align-items: center; gap: 7px; font-size: .88rem; color: #e5f3ff; font-weight: 750; }
+.live-field-card h3 svg { color: #b3f2ff; }
+.live-field-card h3 span { color: #b6cee4; font-size: .75rem; }
+.live-field-card p, .live-field-card small { color: var(--live-muted); font-size: .77rem; line-height: 1.45; }
+.live-field-card .button { justify-self: start; }
+.live-field-card ul, .live-bulletin-list { display: grid; gap: 7px; max-height: 250px; overflow: auto; margin: 0; padding: 0; list-style: none; }
+.live-field-card li, .live-bulletin-list li { display: grid; justify-items: start; gap: 4px; padding-block: 6px; border-bottom: 1px solid var(--live-border); overflow-wrap: anywhere; }
+.live-field-card li strong, .live-bulletin-list li a { font-size: .78rem; color: #e1eefb; font-weight: 650; text-align: left; }
+.live-field-card li span, .live-bulletin-list li span { font-size: .71rem; color: var(--live-muted); }
+.live-board-map-button { display: inline-flex; align-items: center; gap: 4px; padding: 2px 1px; cursor: pointer; color: #b7eaff; font-size: .7rem; text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 1050px) {
+  .live-grid { grid-template-columns: minmax(0, 1.6fr) minmax(250px, 1fr); }
+}
+
+@media (max-width: 825px) {
+  .live-grid { grid-template-columns: 1fr; }
+  .live-map-side { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 610px) {
+  .live-map-side, .live-source-grid, .live-field-controls, .live-board-lists { grid-template-columns: 1fr; }
+  .live-grid, .live-map-side, .live-source-grid { gap: 11px; }
+  .live-map-source-date { text-align: right; white-space: normal; }
+  .live-map-wrap, .live-map-unavailable { min-height: max(310px, 70vw); }
+}
+
+@media (max-width: 375px) {
+  .live-unlock { grid-template-columns: 1fr; }
+  .live-unlock .button { justify-self: start; }
+  .live-weather-metrics dt { gap: 4px; font-size: .64rem; }
+  .live-weather-metrics > div { padding-inline: 6px; }
+}

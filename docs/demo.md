@@ -13,6 +13,8 @@ Open the live demo in a fresh browser tab while connected. Wait for the command 
 
 ## For a follow-up question
 
+- **What uses real data?** Open **Live Bengaluru**, choose two landmarks, then read the street snapshot date, weather model time, and Karnataka bulletin issue dates. For a private test, enter the access code on two devices and share one device's location. Watch the marker appear on the second device and disappear when sharing stops. [Hosted Bengaluru view](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Source and workspace details](../README.md#live-bengaluru)
+
 - **Where is the proof for offline delivery?** The Playwright test disconnects the browser, reloads the page and checks that the server records one incident after reconnecting. [Browser test](../e2e/tests/browser.spec.mjs)
 - **Why did the route move?** The flood polygon intersects road `R05`. PostGIS marks it closed and Dijkstra selects the open detour through `N11`. [Routing notes](engineering.md) · [Route test](../e2e/tests/api.spec.mjs)
 - **What stops double assignments?** Dispatch and shelter reservations lock the records involved. The integration tests race two requests for one unit and two reservations for limited spaces. [Transaction tests](../backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java)

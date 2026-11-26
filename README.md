@@ -1,8 +1,8 @@
 # HydroGrid
 
-HydroGrid is a synthetic flood-response exercise for coordinators, citizens, responders, and shelter operators. It runs disaster scenarios under constrained connectivity and compares two dispatch policies against the same seeded events.
+HydroGrid pairs a flood-response exercise with a live Bengaluru view. The exercise compares two dispatch policies on the same scenario and lets coordinators, citizens, responders, and shelter operators practice under constrained connectivity.
 
-Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
+Try the exercise, then see the implementation decisions and test results mapped to the five judging criteria. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Four-minute walkthrough](docs/demo.md) · [Judging evidence](docs/judging.md)
 
 ## Run the demo
 
@@ -21,13 +21,14 @@ Each browser opens an isolated demo workspace containing fictional reports, reso
 docker compose down
 ```
 
-Compose preserves the demo database between starts. The volume holds only synthetic exercise state.
+Compose preserves the database between starts. The private field workspace is disabled unless you configure an access code.
 
 ## Walkthrough
 
 | Page | What to demonstrate |
 | --- | --- |
 | Overview | Launch the exercise and see how the pages fit together. |
+| Live Bengaluru | Explore mapped streets, route between landmarks, check current modeled weather and official bulletins, or join a private GPS test. |
 | Command center | See ranked reports, route recommendations, unit fit, hazards, and dispatch status. |
 | Citizen SOS | Save a synthetic report offline and confirm delivery after reconnecting. |
 | Responder console | Advance the assigned mission through en route, on scene, and resolved. |
@@ -36,6 +37,23 @@ Compose preserves the demo database between starts. The volume holds only synthe
 | Analytics & audit | Compare measured scenario outcomes and review the operational event log. |
 
 Follow the four-minute sequence for the offline SOS, flood detour, dispatch, and simulation. [Competition walkthrough](docs/demo.md)
+
+## Live Bengaluru
+
+| Layer | Source and scope |
+| --- | --- |
+| Streets and landmarks | Bounded central Bengaluru extract from [OpenStreetMap](https://www.openstreetmap.org/copyright) under [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/). HydroGrid traces a road route between mapped landmarks. Confirm access, traffic, flood conditions, and closures with local authorities before driving. |
+| Current conditions | [Open-Meteo](https://open-meteo.com/en/docs) weather model for central Bengaluru. Values carry the source timestamp. [IMD Bengaluru](https://mausam.imd.gov.in/bengalurums/) publishes official weather information. |
+| State bulletins | [NDMA SACHET](https://sachet.ndma.gov.in/CapFeed) Karnataka RSS. Entries show their original issue dates and may include expired notices. Follow the issuing authority's instructions and bulletin validity periods. |
+| Device GPS | Browser geolocation, activated by the device owner. GPS is shown locally until the user shares it or sends a test SOS to the private workspace. |
+
+The public exercise uses simulated incidents, dispatch, flood polygons, closures, and shelter capacity. A real flood response needs official operational data and enrolled operators. In India, use [112](https://www.mha.gov.in/emergency-response-support-system-erss) for emergencies.
+
+### Private field test
+
+For a trusted test group, set `HYDROGRID_FIELD_ACCESS_CODE` to a password-manager-generated code of at least 32 random characters. Set it in the service environment for a hosted deployment and redeploy, or set it in the shell before running Compose. Use HTTPS on phones. Open **Live Bengaluru**, unlock **Private field test** on each trusted device, and allow location when you choose **Enable device location**. The workspace shows the latest position per sharing device. Stop sharing to remove your position, or it disappears from the board five minutes after the last update. Test SOS reports are visible for 24 hours. Both expire from active storage through scheduled cleanup. When the free host sleeps, cleanup runs after the app wakes and the scheduled interval elapses.
+
+Store the code outside Git, rotate it to revoke previously issued access tokens, and share it only with people authorized to see every position and report in that workspace. Sessions expire after eight hours. Test SOS is a private exercise with a real GPS fix. For emergencies, call 112.
 
 ## Verify
 
@@ -90,4 +108,4 @@ Share the printed `trycloudflare.com` URL. Access lasts while the machine is awa
 
 React, TypeScript, Vite, Tailwind, Leaflet, Recharts, TanStack Query, Dexie and Workbox form the browser application. Spring Boot, Spring Security, JWT and STOMP handle API requests and live updates. Flyway, PostgreSQL 16, PostGIS, Hibernate Spatial and JTS support the spatial data model. Java implements triage, routing, dispatch, and simulation. Docker Compose and GitHub Actions run the release and checks.
 
-HydroGrid uses a bounded fictional road network near Bengaluru. Routes and severity bands are simulated decision support for the exercise. They are unsuitable for real navigation or clinical triage. See [engineering notes](docs/engineering.md).
+The exercise uses a bounded fictional road network near Bengaluru. Its routes and severity bands support scenario replay. The Live Bengaluru page displays its own sourced geography, weather, and bulletin data. See [engineering notes](docs/engineering.md).

@@ -25,7 +25,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{html,js,css,png,webp,woff2}'],
+        globPatterns: ['**/*.{html,js,css,json,png,webp,woff2}'],
         navigateFallbackDenylist: [/^\/api\b/, /^\/ws\b/],
         cleanupOutdatedCaches: true,
       },

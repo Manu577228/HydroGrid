@@ -1,13 +1,13 @@
 # HydroGrid judging evidence
 
-HydroGrid is a flood-response exercise on a synthetic map near Bengaluru. It puts the offline report, route decision, unit dispatch, shelter admission, and audit trail in the same browser workspace. [Open the live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Follow the four-minute walkthrough](demo.md)
+HydroGrid is a flood-response exercise on a synthetic map near Bengaluru. It puts the offline report, route decision, unit dispatch, shelter admission, and audit trail in the same browser workspace. Live Bengaluru adds sourced streets, current weather estimates, government bulletins, and a private device test. [Open the live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Follow the four-minute walkthrough](demo.md)
 
 ## Lifecycle coverage and depth · 30
 
 | Stage | Decision or result | Evidence |
 | --- | --- | --- |
 | Discover | Identify what breaks when a flood blocks roads and reports arrive late. Track whether a report reaches the command center and whether a suitable unit can reach it. | [Problem and originality](#problem-worth-solving-and-originality--10), [initial scope and constraints](https://github.com/Manu577228/HydroGrid/blob/8214ee577bec0b8b5e1c247532d055749d398d08/AGENTS.md) |
-| Define | Use fictional incidents, an isolated workspace for each browser, and seven pages for the roles and decisions in the exercise. | [Page and task map](../README.md#walkthrough), [exercise walkthrough](demo.md) |
+| Define | Use fictional incidents, an isolated workspace for each browser, and role-specific pages for the decisions in the exercise. A live view uses sourced geography and opt-in device GPS. | [Page and task map](../README.md#walkthrough), [exercise walkthrough](demo.md) |
 | Design | Put the app and API on one origin. Queue offline writes with stable client IDs, use PostGIS to exclude flooded roads, and lock the affected rows during dispatch and admissions. | [Architecture and decision notes](engineering.md), [routing and replay design](https://github.com/Manu577228/HydroGrid/commit/8c5323abe1261cd152f90cee6a0c03940980d6d8) |
 | Build | Implement the simulation engine, spatial operations, role-scoped API, and offline-first browser workspace. Redesign the workspace around clear actions and status. | [Simulation engine](https://github.com/Manu577228/HydroGrid/commit/8c5323abe1261cd152f90cee6a0c03940980d6d8), [backend](https://github.com/Manu577228/HydroGrid/commit/093ab9b255a686e6eb4763c00121cbec370023bb), [frontend](https://github.com/Manu577228/HydroGrid/commit/1b22225305cbdf5493e3913eabc4767bfe7dc310), [redesign](https://github.com/Manu577228/HydroGrid/commit/dbd75625263bb1d5e0bfb37417b3e0ebbedf426a) |
 | Test | Exercise algorithms in Java, transactions against PostGIS, and user flows with Playwright. | [Backend tests](../backend/src/test/java/com/hydrogrid), [end-to-end tests](../e2e/tests), [verified release CI run](https://github.com/Manu577228/HydroGrid/actions/runs/45880494565) |
@@ -49,6 +49,7 @@ The redesigned Docker build passed **nine Playwright checks**, including offline
 
 | Proof | Expected evidence |
 | --- | --- |
+| Sourced Bengaluru view | Compare routes between seven nearby landmarks on OpenStreetMap geometry, verify the official Karnataka bulletin source, and share a test location between two authorized devices. [Data scope](../README.md#live-bengaluru) · [Browser tests](../e2e/tests/live.spec.mjs) · [Alert feed tests](../backend/src/test/java/com/hydrogrid/api/AlertFeedTest.java) |
 | Offline durability | Playwright disconnects Chromium and reloads the previously opened app. After reconnecting, one queued SOS creates one incident, and two queued responder milestones appear once each in the incident timeline. [Browser tests](../e2e/tests/browser.spec.mjs) |
 | Dispatch and shelter contention | Two concurrent requests targeting the same unit yield one assignment. Concurrent shelter reservations protect capacity. [PostGIS integration tests](../backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java) |
 | Flood-aware routing | At 40% flood intensity the direct Market Cross–Canal Bridge road closes. The route uses two alternate segments. [Routing engine tests](../backend/src/test/java/com/hydrogrid/engine/HydroEngineTest.java) · [Deployed API test](../e2e/tests/api.spec.mjs) |

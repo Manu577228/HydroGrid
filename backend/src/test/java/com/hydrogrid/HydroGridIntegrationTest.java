@@ -38,8 +38,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "hydrogrid.field-access-code=" + HydroGridIntegrationTest.TEST_FIELD_CODE)
 class HydroGridIntegrationTest {
+    static final String TEST_FIELD_CODE = "test-only-field-workspace-access-code";
+
     @Container
     static final PostgreSQLContainer<?> POSTGIS = new PostgreSQLContainer<>(DockerImageName.parse(
             System.getProperty("hydrogrid.postgis.image", "postgis/postgis:16-3.5"))
@@ -60,6 +63,59 @@ class HydroGridIntegrationTest {
 
     @LocalServerPort
     int port;
+
+    @Test
+    void fieldAccessKeepsGpsAndTestReportsPrivateAndReplaysOnlyOnce() throws Exception {
+        String boardPath = "/api/field/board";
+        String locationPath = "/api/field/location";
+        String reportPath = "/api/field/reports";
+        var status = http.getForEntity("/api/field/status", JsonNode.class);
+        assertThat(status.getBody().path("available").asBoolean()).isTrue();
+        assertThat(http.getForEntity(boardPath, JsonNode.class).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(get(boardPath, token(UUID.randomUUID(), "COORDINATOR")).getStatusCode())
+                .isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(http.postForEntity("/api/field/access", Map.of("code", "incorrect"), JsonNode.class)
+                .getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        String owner = fieldToken();
+        String observer = fieldToken();
+        String device = get(boardPath, owner).getBody().path("deviceId").asText();
+        assertThat(get("/api/incidents", owner).getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(post(locationPath, owner, Map.of("label", "QA handset", "lat", 95, "lng", 77.6, "accuracy", 8))
+                .getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(post(locationPath, owner, Map.of("label", "QA handset", "lat", 12.97, "lng", 77.6, "accuracy", 8))
+                .getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(post(locationPath, owner, Map.of("label", "QA handset", "lat", 12.98, "lng", 77.6, "accuracy", 5))
+                .getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(request(locationPath, observer, null, HttpMethod.DELETE).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+
+        var board = get(boardPath, observer);
+        assertThat(board.getHeaders().getCacheControl()).contains("no-store");
+        var positions = board.getBody().path("positions");
+        assertThat(positions.size()).isEqualTo(1);
+        assertThat(positions.get(0).path("id").asText()).isEqualTo(device);
+        assertThat(positions.get(0).path("lat").asDouble()).isEqualTo(12.98);
+        assertThat(request(locationPath, owner, null, HttpMethod.DELETE).getStatusCode())
+                .isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(get(boardPath, observer).getBody().path("positions").size()).isZero();
+
+        var report = Map.of("clientId", UUID.randomUUID(), "lat", 12.97, "lng", 77.6, "accuracy", 8,
+                "note", "Test only");
+        var receipts = race(() -> post(reportPath, owner, report), () -> post(reportPath, owner, report));
+        assertThat(receipts).allSatisfy(receipt -> assertThat(receipt.getStatusCode()).isEqualTo(HttpStatus.OK));
+        String reportId = receipts.getFirst().getBody().path("id").asText();
+        assertThat(receipts.getLast().getBody().path("id").asText()).isEqualTo(reportId);
+        var reports = get(boardPath, observer).getBody().path("reports");
+        assertThat(reports.size()).isEqualTo(1);
+        assertThat(reports.get(0).path("id").asText()).isEqualTo(reportId);
+    }
+
+    private String fieldToken() {
+        var response = http.postForEntity("/api/field/access", Map.of("code", TEST_FIELD_CODE), JsonNode.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return response.getBody().path("token").asText();
+    }
 
     @Test
     void stompDeliversCommittedUpdatesAndRejectsOtherSessions() throws Exception {

@@ -1,0 +1,31 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  tomcat:
+    threads:
+      max: 40
+      min-spare: 2
+  error:
+    include-message: never
+spring:
+  mvc:
+    problemdetails:
+      enabled: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/hydrogrid}
+    username: ${SPRING_DATASOURCE_USERNAME:hydrogrid}
+    password: ${SPRING_DATASOURCE_PASSWORD:hydrogrid}
+    hikari:
+      maximum-pool-size: 6
+      minimum-idle: 1
+      connection-timeout: 10000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    validate-migration-naming: true
+hydrogrid:
+  demo-enabled: ${HYDROGRID_DEMO_ENABLED:true}
+  jwt-secret: ${HYDROGRID_JWT_SECRET:}
+  allow-custom-reports: ${HYDROGRID_ALLOW_CUSTOM_REPORTS:false}

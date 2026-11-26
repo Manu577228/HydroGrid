@@ -9,6 +9,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -28,6 +30,7 @@ import java.security.SecureRandom;
 @EnableMethodSecurity
 public class SecurityConfiguration {
     public static final String TOKEN_ISSUER = "hydrogrid-demo";
+    public static final String ACCOUNT_ROLE = "ACCOUNT_CITIZEN";
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,6 +46,9 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(access -> access
                         .requestMatchers(HttpMethod.GET, "/api/health", "/api/graph", "/api/field/status", "/api/live/alerts", "/api/ops/status").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/demo", "/api/field/access", "/api/ops/access").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/account/register", "/api/account/login",
+                                "/api/account/refresh", "/api/account/logout").permitAll()
+                        .requestMatchers("/api/account/**").hasRole(ACCOUNT_ROLE)
                         .requestMatchers("/api/field/**").hasRole("FIELD")
                         .requestMatchers("/api/ops/**").hasRole("OPS")
                         .requestMatchers("/api/**").hasAnyRole("COORDINATOR", "RESPONDER", "SHELTER", "CITIZEN")
@@ -51,6 +57,11 @@ public class SecurityConfiguration {
                         .anyRequest().denyAll())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(authentication)))
                 .build();
+    }
+
+    @Bean
+    PasswordEncoder accountPasswordEncoder() {
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean

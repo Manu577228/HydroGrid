@@ -1,0 +1,76 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { BedDouble, Building2, CircleCheck, HeartPulse, HousePlus, Plus, Route, Ticket, UsersRound } from 'lucide-react'
+import { useState } from 'react'
+import { api, client, uuid } from '../api'
+import { Button, Empty, ErrorNotice, Loading, Modal, PageTitle, PanelTitle } from '../components/ui'
+import { useNetwork } from '../network'
+
+export function ShelterPage() {
+  const { offline } = useNetwork()
+  const shelters = useQuery({ queryKey: ['shelters'], queryFn: api.shelters, enabled: !offline })
+  const incidents = useQuery({ queryKey: ['incidents'], queryFn: () => api.incidents(), enabled: !offline })
+  const [selectedId, setSelectedId] = useState('')
+  const [reservationOpen, setReservationOpen] = useState(false)
+  const [people, setPeople] = useState(1)
+  const [incidentId, setIncidentId] = useState('')
+  const [clientId, setClientId] = useState('')
+  const selected = shelters.data?.find((entry) => entry.id === selectedId) ?? shelters.data?.[0]
+  const id = selected?.id ?? ''
+  const recommendations = useQuery({ queryKey: ['shelter-recommendations', incidentId], queryFn: () => api.shelterRecommendations(incidentId), enabled: Boolean(incidentId && reservationOpen && !offline) })
+  const recommended = recommendations.data?.find((entry) => entry.shelter.available >= people)
+  const reservations = useQuery({ queryKey: ['reservations', id], queryFn: () => api.reservations(id), enabled: Boolean(id && !offline) })
+  const refresh = () => client.invalidateQueries({ predicate: (query) => ['shelters', 'reservations'].includes(String(query.queryKey[0])) })
+  const reserve = useMutation({ mutationFn: () => api.reserve(id, { people, clientId, incidentId: incidentId || undefined }), onSuccess: async () => { setReservationOpen(false); await refresh() } })
+  const admit = useMutation({ mutationFn: (reservationId: string) => api.admit(id, reservationId), onSuccess: refresh })
+
+  function openReservation() {
+    setClientId(uuid())
+    setPeople(1)
+    setIncidentId('')
+    reserve.reset()
+    setReservationOpen(true)
+  }
+
+  return <>
+    <PageTitle title="Shelter management" description="Track relief and medical capacity, reserve places, and admit arrivals." />
+    {offline && <div className="notice"><HousePlus size={17} /> Shelter capacity updates require a connection.</div>}
+    <div className="shelter-grid">
+      {shelters.data?.map((shelter) => <button className={'panel shelter-card' + (selected?.id === shelter.id ? ' shelter-selected' : '')} key={shelter.id} type="button" aria-pressed={selected?.id === shelter.id} onClick={() => { setSelectedId(shelter.id); admit.reset() }}>
+        <div className="feature-top"><span className="metric-icon">{shelter.type === 'MEDICAL' ? <HeartPulse size={20} /> : <Building2 size={20} />}</span><span className="tag tag-green">{shelter.type === 'MEDICAL' ? 'Medical' : 'Relief'}</span></div>
+        <h2>{shelter.name}</h2><div className="shelter-main"><strong>{shelter.available}</strong><span> / {shelter.capacity} places available</span></div>
+        <div className="capacity-bar" role="meter" aria-label="Occupied or reserved capacity" aria-valuemin={0} aria-valuemax={shelter.capacity} aria-valuenow={shelter.admitted + shelter.reserved}><i style={{ width: (shelter.admitted + shelter.reserved) * 100 / shelter.capacity + '%' }} /></div>
+        <div className="shelter-meta"><span><Ticket size={15} />{shelter.reserved} reserved</span><span><UsersRound size={15} />{shelter.admitted} admitted</span></div>
+      </button>)}
+    </div>
+    {shelters.isPending && !offline && <Loading label="Loading shelters" />}
+    <ErrorNotice error={shelters.error} />
+    {selected && <section className="panel">
+      <PanelTitle icon={<BedDouble size={18} />} title={selected.name} detail="Reservation register" actions={<Button disabled={offline || selected.available < 1} onClick={openReservation}><Plus size={17} /> Reserve spaces</Button>} />
+      <div className="panel-body">
+        {reservations.data?.length ? <div className="table-scroll"><table className="data-table"><thead><tr><th>Reservation</th><th>Incident</th><th>People</th><th>Status</th><th>Action</th></tr></thead><tbody>
+          {reservations.data.map((entry) => <tr key={entry.id}>
+            <td className="mono">{entry.id.slice(0, 8)}</td><td>{incidents.data?.find((item) => item.id === entry.incidentId)?.summary ?? (entry.incidentId ? entry.incidentId.slice(0, 8) : 'Walk-in')}</td><td>{entry.people}</td>
+            <td><span className={'tag ' + (entry.status === 'ADMITTED' ? 'tag-green' : 'tag-medium')}>{entry.status === 'ADMITTED' ? 'Admitted' : 'Reserved'}</span></td>
+            <td>{entry.status === 'RESERVED' && <Button variant="outline" size="sm" disabled={admit.isPending || offline} onClick={() => admit.mutate(entry.id)}><CircleCheck size={15} /> Admit</Button>}</td>
+          </tr>)}
+        </tbody></table></div> : reservations.isPending && !offline ? <Loading label="Loading reservations" /> : <Empty>{offline ? 'Reservation records load when connected.' : 'No reservations at this shelter.'}</Empty>}
+        <ErrorNotice error={reservations.error ?? admit.error} />
+      </div>
+    </section>}
+    <Modal open={reservationOpen} onOpenChange={setReservationOpen} title="Reserve shelter spaces" description={selected ? selected.available + ' places available at ' + selected.name + '.' : 'Choose the required number of spaces.'}>
+      <form className="form-stack" onSubmit={(event) => { event.preventDefault(); reserve.mutate() }}>
+        <label className="field-label">Link to incident<select value={incidentId} onChange={(event) => {
+          setIncidentId(event.target.value)
+          setPeople(incidents.data?.find((item) => item.id === event.target.value)?.people ?? 1)
+        }}><option value="">Walk-in reservation</option>{incidents.data?.filter((item) => item.status !== 'RESOLVED').map((item) => <option key={item.id} value={item.id}>{item.summary} · {item.nodeId}</option>)}</select></label>
+        {incidentId && recommendations.isPending && !offline && <Loading label="Checking reachable shelters" />}
+        {recommended && <div className="route-summary"><Route size={17} /><div><strong>{recommended.shelter.name}</strong><small>Recommended · {recommended.route.travelMinutes.toFixed(1)} simulated minutes · {recommended.shelter.available} spaces</small></div>{recommended.shelter.id !== id && <Button variant="outline" size="sm" disabled={reserve.isPending} onClick={() => { setSelectedId(recommended.shelter.id); setClientId(uuid()); reserve.reset() }}>Use shelter</Button>}</div>}
+        {incidentId && recommendations.data && !recommended && <p className="muted small">No reachable shelter suits this incident and headcount.</p>}
+        <ErrorNotice error={recommendations.error} />
+        <label className="field-label">People<input type="number" min="1" max={Math.min(200, selected?.available ?? 0)} required value={people || ''} onChange={(event) => setPeople(Number(event.target.value))} /></label>
+        <ErrorNotice error={reserve.error} />
+        <div className="modal-actions"><Button variant="outline" onClick={() => setReservationOpen(false)}>Cancel</Button><Button type="submit" disabled={reserve.isPending || offline}>Confirm reservation</Button></div>
+      </form>
+    </Modal>
+  </>
+}

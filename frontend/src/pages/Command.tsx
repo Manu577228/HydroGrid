@@ -3,7 +3,7 @@ import {
   Activity, AlertTriangle, ArrowRight, BusFront, ChevronRight, CircleCheck, ClipboardList, Crosshair, FlaskConical,
   History, HousePlus, Layers, ListFilter, MapPin, MapPinned, Route as RouteIcon, Siren, UserRound,
 } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { api, client } from '../api'
 import { OperatingMap } from '../components/Map'
@@ -30,6 +30,7 @@ export function CommandPage() {
   const [overrideReason, setOverrideReason] = useState('Field verification')
   const [tab, setTab] = useState<'dispatch' | 'history'>('dispatch')
   const [confirmation, setConfirmation] = useState('')
+  const detailsPanel = useRef<HTMLElement>(null)
   const all = [...(incidents.data ?? [])].sort((a, b) => b.score - a.score || Date.parse(a.createdAt) - Date.parse(b.createdAt))
   const active = all.filter((item) => item.status !== 'RESOLVED')
   const filtered = filter === 'all' ? all : filter === 'critical' ? active.filter((item) => item.severity === 'CRITICAL') : active
@@ -42,6 +43,7 @@ export function CommandPage() {
     queryKey: ['timeline', queryId], queryFn: () => api.timeline(queryId), enabled: Boolean(queryId && tab === 'history' && !offline),
   })
   const candidate = recommendations.data?.candidates.find((entry) => entry.unitId === unitId) ?? recommendations.data?.candidates[0]
+  const recommendedUnit = units.data?.find((unit) => unit.id === candidate?.unitId)
   const related = clusters.data?.find((cluster) => cluster.incidentIds.includes(queryId))
   const relatedIncident = related && all.find((item) => item.id !== queryId && related.incidentIds.includes(item.id))
   const refresh = () => client.invalidateQueries({ predicate: (query) => query.queryKey[0] !== 'simulation' })
@@ -56,7 +58,7 @@ export function CommandPage() {
   }
 
   return <>
-    <PageTitle title="Command center" description="Review SOS reports, monitor flood zones, and coordinate rescue units." actions={<>
+    <PageTitle icon={<Crosshair size={24} aria-hidden="true" />} title="Command center" description="Choose an SOS to review its urgency and send an available rescue team." actions={<>
       <Link to="/simulation" className="button button-outline button-normal"><FlaskConical size={16} /> Simulation lab</Link>
       <Link to="/sos" className="button button-primary button-normal"><Siren size={16} /> New SOS</Link>
     </>} />
@@ -69,25 +71,31 @@ export function CommandPage() {
     {offline && <div className="notice"><Activity size={17} /> No connection. Live operations resume when HydroGrid is reachable.</div>}
     <div className="command-top">
       <section className="panel command-map-panel">
-        <PanelTitle icon={<MapPinned size={17} />} title="Operating map" detail="Flood zones and rescue movements" actions={<span className={cn('connection-status', live && 'connection-live')}><i />{live ? 'Live' : offline ? 'Offline' : 'Connecting'}</span>} />
+        <PanelTitle icon={<MapPinned size={17} />} title="Operating map" detail="Flood zones, closed roads, and rescue teams" actions={<span className={cn('connection-status', live && 'connection-live')}><i />{live ? 'Live' : offline ? 'Offline' : 'Connecting'}</span>} />
         {graph.data ? <OperatingMap graph={graph.data} incidents={active} units={units.data} shelters={shelters.data} selected={selected} route={dispatch.isSuccess ? undefined : candidate?.route} onSelect={onSelect} /> : offline ? <Empty>The map will load when connected.</Empty> : graph.isError ? <ErrorNotice error={graph.error} /> : <Loading label="Loading map" />}
         <div className="panel-footer"><Layers size={15} /> <span>{graph.data ? graph.data.blockedRoadIds.length + ' roads blocked at ' + graph.data.intensity + '% flood intensity' : 'Synthetic routes'}.</span><Link to="/simulation" className="text-link">Adjust hazard <ArrowRight size={14} /></Link></div>
       </section>
       <section className="panel incidents-panel">
-        <PanelTitle icon={<ClipboardList size={17} />} title="Incident queue" detail="Ordered by triage score" />
+        <PanelTitle icon={<ClipboardList size={17} />} title="Incident queue" detail="Highest priority reports appear first" />
         <div className="incident-filters"><ListFilter size={16} /><select aria-label="Filter incidents" value={filter} onChange={(event) => setFilter(event.target.value)}><option value="active">Active incidents</option><option value="critical">Critical incidents</option><option value="all">All incident reports</option></select><span>{filtered.length}</span></div>
         <div className="incident-list" aria-label="Incident queue">
           {filtered.map((item) => <IncidentRow key={item.id} incident={item} selected={selected?.id === item.id} onClick={() => setSelectedId(item.id)} />)}
           {!filtered.length && (offline ? <Empty>Incident reports will load when connected.</Empty> : incidents.isError ? <ErrorNotice error={incidents.error} /> : incidents.isPending ? <Loading label="Loading incidents" /> : <Empty>No reports match this filter.</Empty>)}
         </div>
+        {selected && <div className="panel-footer">
+          <Button variant="outline" size="sm" onClick={() => {
+            detailsPanel.current?.focus({ preventScroll: true })
+            detailsPanel.current?.scrollIntoView({ block: 'start' })
+          }}><Crosshair size={16} /> Review selected report</Button>
+        </div>}
       </section>
     </div>
-    {selected && <section className="panel operation-panel" aria-label="Selected incident">
+    {selected && <section ref={detailsPanel} tabIndex={-1} className="panel operation-panel" aria-label="Selected incident">
       <PanelTitle icon={<Crosshair size={17} />} title={selected.summary} detail={hazardLabels[selected.hazard] + ' · ' + selected.nodeId + ' · ' + selected.people + ' people'} actions={<div className="flex items-center gap-2"><SeverityBadge severity={selected.severity} /><StatusBadge status={selected.status} /></div>} />
-      <div className="tabs" aria-label="Incident details"><button type="button" className={tab === 'dispatch' ? 'current' : ''} onClick={() => setTab('dispatch')}><RouteIcon size={16} /> Dispatch</button><button type="button" className={tab === 'history' ? 'current' : ''} onClick={() => setTab('history')}><History size={16} /> Timeline</button></div>
+      <div className="tabs" role="group" aria-label="Incident details"><button type="button" aria-pressed={tab === 'dispatch'} className={tab === 'dispatch' ? 'current' : ''} onClick={() => setTab('dispatch')}><RouteIcon size={16} /> Dispatch</button><button type="button" aria-pressed={tab === 'history'} className={tab === 'history' ? 'current' : ''} onClick={() => setTab('history')}><History size={16} /> Timeline</button></div>
       {tab === 'dispatch' ? <div className="incident-detail-grid">
         <div>
-          <div className="section-heading"><h3>Triage breakdown</h3><strong>{selected.score} points</strong></div>
+          <div className="section-heading"><h3>What sets the priority</h3><strong>{selected.score} points</strong></div>
           <dl className="compact-list">{selected.reasons?.map((reason) => <div key={reason.label}><dt>{reason.label}</dt><dd>{reason.points > 0 ? '+' : ''}{reason.points}</dd></div>)}</dl>
           <Button variant="outline" size="sm" disabled={offline} onClick={() => { setSeverity(selected.severity); setOverrideOpen(true) }}>Review severity</Button>
           {selected.groupId ? <p className="muted small">Group {selected.groupId.slice(0, 8)}. Reports remain separate.</p> : related && relatedIncident && <div className="related-report"><strong>Potentially related SOS</strong><p>{relatedIncident.summary} · {Math.round(related.distanceMeters)} m away</p><Button variant="outline" size="sm" disabled={grouping.isPending || offline} onClick={() => grouping.mutate(related.incidentIds)}>Confirm group</Button><ErrorNotice error={grouping.error} /></div>}
@@ -102,10 +110,15 @@ export function CommandPage() {
                 {recommendations.data?.candidates.map((item) => <option key={item.unitId} value={item.unitId}>{units.data?.find((unit) => unit.id === item.unitId)?.name ?? item.unitId} · {item.route.travelMinutes.toFixed(1)} min · {item.spareCapacity} spare places</option>)}
               </select></label>
               <div className="route-summary"><RouteIcon size={17} /><div><strong>{candidate.route.distanceKm.toFixed(2)} km · {candidate.route.travelMinutes.toFixed(1)} min</strong><small>Simulated route through accessible roads</small></div></div>
-              {units.data?.find((unit) => unit.id === candidate.unitId) && <p className="muted small">Equipment: {equipmentLabel(units.data.find((unit) => unit.id === candidate.unitId)!.equipment)}</p>}
+              {recommendedUnit && <p className="muted small">Equipment on board · {equipmentLabel(recommendedUnit.equipment)}</p>}
               <Button disabled={dispatch.isPending || offline} onClick={() => dispatch.mutate({ id: selected.id, unit: candidate.unitId })}><ArrowRight size={17} /> Dispatch unit</Button>
             </> : recommendations.data && <div className="notice"><AlertTriangle size={17} />{recommendations.data.reason}</div>}
-          </> : <div className="route-summary"><CircleCheck size={18} /><div><strong>{units.data?.find((unit) => unit.id === selected.assignedUnitId)?.name ?? 'Mission recorded'}</strong><small>{selected.status === 'RESOLVED' ? 'Response completed' : 'Follow the incident in the responder console'}</small></div></div>}
+          </> : <div className="route-summary">
+            <CircleCheck size={18} /><div>
+              <strong>{units.data?.find((unit) => unit.id === selected.assignedUnitId)?.name ?? 'Mission recorded'}</strong>
+              {selected.status === 'RESOLVED' ? <small>Response completed</small> : <Link to={'/responder?mission=' + encodeURIComponent(selected.id)} className="text-link">Open this mission <ArrowRight size={14} /></Link>}
+            </div>
+          </div>}
           {confirmation && <div className="notice notice-success" role="status"><CircleCheck size={17} />{confirmation}</div>}
           <ErrorNotice error={dispatch.error} />
         </div>

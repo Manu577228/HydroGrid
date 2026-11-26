@@ -1,4 +1,4 @@
-import { CheckCircle2, CloudUpload, History, MapPin, Send, ShieldAlert, Users, Wifi, WifiOff } from 'lucide-react'
+import { CheckCircle2, CloudUpload, Droplets, Gauge, History, MapPin, Send, ShieldAlert, Siren, Users, Wifi, WifiOff } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../api'
 import { Button, Empty, ErrorNotice, hazardLabels, PageTitle, PanelTitle, timestamp } from '../components/ui'
@@ -47,16 +47,16 @@ export function SosPage() {
   }
 
   return <>
-    <PageTitle title="Citizen SOS" description="Submit a simulated emergency report from a location on the demonstration map." />
+    <PageTitle icon={<Siren size={24} aria-hidden="true" />} title="Citizen SOS" description="Send a practice SOS from the exercise map. You can save the report even when your device is offline." />
     <div className="workspace-split">
       <section className="panel form-panel">
         <PanelTitle icon={<ShieldAlert size={18} />} title="Emergency report" detail="Fictional information only" />
         <form className="form-stack panel-body" onSubmit={(event) => { event.preventDefault(); void save() }}>
           <div className="form-grid">
-            <label className="field-label">Emergency type<select value={hazard} onChange={(event) => setHazard(event.target.value as Hazard)}>
+            <label className="field-label"><span><Siren size={15} aria-hidden="true" /> Emergency type</span><select value={hazard} onChange={(event) => setHazard(event.target.value as Hazard)}>
               {Object.entries(hazardLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select></label>
-            <label className="field-label">Reported severity<select value={reportedSeverity} onChange={(event) => setReportedSeverity(event.target.value as Severity)}>
+            <label className="field-label"><span><Gauge size={15} aria-hidden="true" /> How urgent is it?</span><select value={reportedSeverity} onChange={(event) => setReportedSeverity(event.target.value as Severity)}>
               <option value="LOW">Low</option><option value="MEDIUM">Medium</option><option value="HIGH">High</option><option value="CRITICAL">Critical</option>
             </select></label>
           </div>
@@ -65,31 +65,31 @@ export function SosPage() {
           </select></label>
           <div className="form-grid">
             <label className="field-label"><span><Users size={15} /> People affected</span><input type="number" min="1" max="100" required value={people || ''} onChange={(event) => setPeople(Number(event.target.value))} /></label>
-            {hazard === 'FLOOD' && <label className="field-label">Reported water depth (cm)<input type="number" min="0" max="500" required value={depthCm} onChange={(event) => setDepthCm(Number(event.target.value))} /></label>}
+            {hazard === 'FLOOD' && <label className="field-label"><span><Droplets size={15} aria-hidden="true" /> Water depth (cm)</span><input type="number" min="0" max="500" required value={depthCm} onChange={(event) => setDepthCm(Number(event.target.value))} /></label>}
           </div>
           <fieldset className="checkbox-stack"><legend>Emergency conditions</legend>
             <label><input type="checkbox" checked={immediateDanger} onChange={(event) => setImmediateDanger(event.target.checked)} />Immediate danger</label>
             <label><input type="checkbox" checked={medical} onChange={(event) => setMedical(event.target.checked)} />Medical help needed</label>
-            <label><input type="checkbox" checked={vulnerable} onChange={(event) => setVulnerable(event.target.checked)} />Vulnerable occupants</label>
+            <label><input type="checkbox" checked={vulnerable} onChange={(event) => setVulnerable(event.target.checked)} />Someone needs help evacuating</label>
           </fieldset>
           <ErrorNotice error={error} />
-          <div className="form-footer"><div><strong>{descriptions[hazard]}</strong><small>{offline ? 'Saved on this device until the connection returns.' : 'Stored on this device first, then sent to HydroGrid.'}</small></div><Button type="submit" disabled={saving}><Send size={17} /> {offline ? 'Save SOS offline' : 'Submit SOS'}</Button></div>
+          <div className="form-footer"><div><strong>{descriptions[hazard]}</strong><small>{offline ? 'This report will send when you reconnect.' : 'Check the delivery log to confirm it arrived.'}</small></div><Button type="submit" disabled={saving}><Send size={17} /> {offline ? 'Save SOS offline' : 'Submit SOS'}</Button></div>
         </form>
       </section>
       <div className="side-stack">
         <section className="panel">
-          <PanelTitle icon={offline ? <WifiOff size={18} /> : <Wifi size={18} />} title="Connection" detail={offline ? 'Offline mode is active' : 'Automatic synchronization is enabled'} />
+          <PanelTitle icon={offline ? <WifiOff size={18} /> : <Wifi size={18} />} title="Connection" detail={offline ? 'Offline · reports save on this device' : 'Online · reports send automatically'} />
           <div className="panel-body form-stack">
             <label className="toggle-row"><input type="checkbox" checked={simulated} onChange={(event) => setSimulated(event.target.checked)} /> Simulate offline</label>
-            <p className="muted small">{offline ? 'An SOS remains on this device until HydroGrid can receive it.' : 'Switch offline to test saving an SOS without a connection.'}</p>
+            <p className="muted small">{offline ? 'When you reconnect, HydroGrid sends any queued reports.' : 'Turn this on to try saving a report during an outage.'}</p>
           </div>
         </section>
         <section className="panel" aria-label="SOS delivery log">
-          <PanelTitle icon={<History size={17} />} title="Delivery log" detail={pending + ' awaiting delivery'} />
+          <PanelTitle icon={<History size={17} />} title="Delivery log" detail={pending ? pending + ' waiting to send' : 'Reports from this device'} />
           {queue.length ? <div className="delivery-log" aria-live="polite">
             {queue.map((action) => <div className="delivery-item" key={action.clientId}>
               <div><strong>{(action.payload as IncidentInput).summary}</strong><small>{timestamp(action.createdAt)}</small>{action.error && <small className="form-error">{action.error}</small>}</div>
-              <span className={'tag tag-' + (action.status === 'sent' ? 'green' : action.status === 'failed' ? 'critical' : 'medium')}>{action.status === 'sent' ? <><CheckCircle2 size={13} /> Delivered</> : action.status === 'failed' ? 'Failed' : 'Queued offline'}</span>
+              <span className={'tag tag-' + (action.status === 'sent' ? 'green' : action.status === 'failed' ? 'critical' : 'medium')}>{action.status === 'sent' ? <><CheckCircle2 size={13} aria-hidden="true" /> Delivered</> : action.status === 'failed' ? 'Needs attention' : offline ? 'Queued offline' : 'Waiting to send'}</span>
             </div>)}
           </div> : <Empty>No reports saved on this device.</Empty>}
           {pending > 0 && <div className="panel-footer"><Button variant="outline" size="sm" disabled={offline} onClick={() => void synchronize()}><CloudUpload size={15} /> Retry sync</Button></div>}

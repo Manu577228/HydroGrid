@@ -38,13 +38,17 @@ export function Benchmark({ result }: { result: Simulation }) {
       <div className="benchmark-chart" aria-label="Bar chart comparing critical incidents served and resource utilization">
         <ResponsiveContainer width="100%" height={238} minWidth={130}>
           <BarChart data={points} barSize={30} margin={{ top: 16, right: 12, bottom: 5, left: -13 }}>
-            <CartesianGrid stroke="#e4ebe5" strokeDasharray="4 4" vertical={false} />
-            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#526b60', fontSize: 12 }} />
-            <YAxis domain={[0, 100]} tickFormatter={(value) => value + '%'} tickLine={false} axisLine={false} tick={{ fill: '#526b60', fontSize: 11 }} />
-            <Tooltip formatter={(value) => typeof value === 'number' ? percent(value) : value} cursor={{ fill: '#eff5ef' }} />
-            <Legend wrapperStyle={{ fontSize: 12, paddingTop: 9 }} />
-            <Bar dataKey="FIFO" fill="#a8bcb2" radius={[5, 5, 0, 0]} />
-            <Bar dataKey="HydroGrid" fill="#37735b" radius={[5, 5, 0, 0]} />
+            <defs>
+              <linearGradient id="fifo-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#c9bcff" /><stop offset="100%" stopColor="#716bd0" /></linearGradient>
+              <linearGradient id="hydrogrid-bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#a6fff1" /><stop offset="100%" stopColor="#2b9ab5" /></linearGradient>
+            </defs>
+            <CartesianGrid stroke="#83b9ea36" strokeDasharray="4 4" vertical={false} />
+            <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#afc9e2', fontSize: 12 }} />
+            <YAxis domain={[0, 100]} tickFormatter={(value) => value + '%'} tickLine={false} axisLine={false} tick={{ fill: '#afc9e2', fontSize: 11 }} />
+            <Tooltip formatter={(value) => typeof value === 'number' ? percent(value) : value} cursor={{ fill: '#87b7e318' }} contentStyle={{ background: '#16314b', border: '1px solid #709cc8', borderRadius: 10, color: '#e9f6ff' }} labelStyle={{ color: '#e9f6ff' }} />
+            <Legend formatter={(value) => <span style={{ color: '#d8e9fc' }}>{value}</span>} wrapperStyle={{ fontSize: 12, paddingTop: 9 }} />
+            <Bar dataKey="FIFO" fill="#b8a9ff" legendType="circle" radius={[5, 5, 0, 0]} isAnimationActive={false} className="benchmark-bar-fifo" />
+            <Bar dataKey="HydroGrid" fill="#7defe1" legendType="circle" radius={[5, 5, 0, 0]} isAnimationActive={false} className="benchmark-bar-hydrogrid" />
           </BarChart>
         </ResponsiveContainer>
       </div>

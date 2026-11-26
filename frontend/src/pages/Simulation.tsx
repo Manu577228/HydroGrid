@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Activity, BusFront, Droplets, FlaskConical, MapPinned, Pause, Play, RotateCcw, Route as RouteIcon, SlidersHorizontal, WifiOff } from 'lucide-react'
+import { Activity, Ambulance, BusFront, Clock, Droplets, FlaskConical, Hash, MapPin, MapPinned, Pause, Play, RotateCcw, Route as RouteIcon, Siren, SlidersHorizontal, WifiOff, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { api, client } from '../api'
 import { Benchmark, latestSimulationKey } from '../components/Benchmark'
@@ -10,10 +10,13 @@ import type { Graph, Scenario, Simulation, SimulationDispatch } from '../types'
 
 const defaultScenario: Scenario = { seed: 1337, incidents: 100, units: 15, floodIntensity: 40, networkDisruption: 30 }
 
-function Range({ label, value, max, min = 0, suffix = '', onChange }: {
-  label: string; value: number; min?: number; max: number; suffix?: string; onChange: (value: number) => void
+function Range({ label, value, max, min = 0, suffix = '', onChange, icon: Icon }: {
+  label: string; value: number; min?: number; max: number; suffix?: string; onChange: (value: number) => void; icon: LucideIcon
 }) {
-  return <label className="range-field"><span>{label}<strong>{value}{suffix}</strong></span><input type="range" min={min} max={max} value={value} onChange={(event) => onChange(Number(event.target.value))} /></label>
+  return <label className="range-field">
+    <span><span className="inline-flex items-center gap-2"><Icon size={15} aria-hidden="true" /> {label}</span><strong aria-hidden="true">{value}{suffix}</strong></span>
+    <input type="range" min={min} max={max} value={value} aria-valuetext={String(value) + suffix} onChange={(event) => onChange(Number(event.target.value))} />
+  </label>
 }
 
 export function SimulationPage() {
@@ -43,7 +46,7 @@ export function SimulationPage() {
   const horizon = result?.summary.horizonMinutes ?? 0
   useEffect(() => {
     if (!playing || !horizon) return
-    const timer = window.setInterval(() => setMinute((previous) => Math.min(horizon, previous + 2)), 200)
+    const timer = window.setInterval(() => setMinute((previous) => Math.min(horizon, previous + 1)), 100)
     return () => window.clearInterval(timer)
   }, [playing, horizon])
   useEffect(() => { if (playing && minute >= horizon) setPlaying(false) }, [minute, horizon, playing])
@@ -51,41 +54,41 @@ export function SimulationPage() {
   const update = (key: keyof Scenario, value: number) => setScenario((previous) => ({ ...previous, [key]: value }))
 
   return <>
-    <PageTitle title="Simulation laboratory" description="Generate a reproducible disaster and test two dispatch strategies on the same inputs." />
+    <PageTitle icon={<FlaskConical size={24} aria-hidden="true" />} title="Simulation laboratory" description="Set up an exercise, then see how two dispatch strategies handle the same flood." />
     {offline && <div className="notice"><WifiOff size={17} /> Reconnect to run a benchmark or change the shared hazard map.</div>}
     <div className="workspace-split simulation-top">
       <section className="panel">
-        <PanelTitle icon={<SlidersHorizontal size={18} />} title="Scenario controls" detail="Change the seed to generate a different disaster" />
+        <PanelTitle icon={<SlidersHorizontal size={18} />} title="Scenario controls" detail="Set the size of the flood response exercise" />
         <form className="panel-body form-stack" onSubmit={(event) => { event.preventDefault(); run.mutate(scenario) }}>
-          <label className="field-label">Random seed<input type="number" min={-2147483648} max={2147483647} required value={scenario.seed} onChange={(event) => update('seed', Number(event.target.value))} /></label>
-          <Range label="Emergency incidents" value={scenario.incidents} min={1} max={200} onChange={(value) => update('incidents', value)} />
-          <Range label="Rescue units" value={scenario.units} min={1} max={40} onChange={(value) => update('units', value)} />
-          <Range label="Flood intensity" value={scenario.floodIntensity} max={100} suffix="%" onChange={(value) => update('floodIntensity', value)} />
-          <Range label="Network disruption" value={scenario.networkDisruption} max={100} suffix="%" onChange={(value) => update('networkDisruption', value)} />
+          <label className="field-label"><span><Hash size={15} aria-hidden="true" /> Scenario seed</span><input type="number" min={-2147483648} max={2147483647} required value={scenario.seed} aria-describedby="scenario-seed-help" onChange={(event) => update('seed', Number(event.target.value))} /><small className="muted small" id="scenario-seed-help">Use the same seed and settings to repeat a run.</small></label>
+          <Range icon={Siren} label="Emergency incidents" value={scenario.incidents} min={1} max={200} onChange={(value) => update('incidents', value)} />
+          <Range icon={Ambulance} label="Rescue units" value={scenario.units} min={1} max={40} onChange={(value) => update('units', value)} />
+          <Range icon={Droplets} label="Flood intensity" value={scenario.floodIntensity} max={100} suffix="%" onChange={(value) => update('floodIntensity', value)} />
+          <Range icon={WifiOff} label="Chance of a report being delayed" value={scenario.networkDisruption} max={100} suffix="%" onChange={(value) => update('networkDisruption', value)} />
           <ErrorNotice error={run.error} />
           <div className="form-footer"><Button variant="outline" onClick={() => setScenario(defaultScenario)}><RotateCcw size={16} /> Reset scenario</Button><Button type="submit" disabled={run.isPending || offline}><FlaskConical size={17} /> {run.isPending ? 'Running simulation…' : 'Run simulation'}</Button></div>
         </form>
       </section>
       <section className="panel">
-        <PanelTitle icon={<Activity size={18} />} title="Scenario playback" detail={result ? 'Seed ' + result.scenario.seed + ' · ' + result.summary.offlineReports + ' reports delayed' : 'Run a scenario to view incident and unit movements'} actions={result && <select className="standalone-select" aria-label="Playback strategy" value={strategy} onChange={(event) => setStrategy(event.target.value as typeof strategy)}><option value="hydroGrid">HydroGrid</option><option value="baseline">FIFO</option></select>} />
+        <PanelTitle icon={<Activity size={18} />} title="Scenario playback" detail={result ? 'Seed ' + result.scenario.seed + ' · ' + result.summary.offlineReports + ' reports delayed' : 'Run a simulation to see the reports arrive and rescue teams move'} actions={result && <select className="standalone-select" aria-label="Playback strategy" value={strategy} onChange={(event) => setStrategy(event.target.value as typeof strategy)}><option value="hydroGrid">HydroGrid · by urgency</option><option value="baseline">FIFO · by arrival order</option></select>} />
         {playback ? <OperatingMap graph={playback.graph} incidents={playback.incidents} units={playback.units} /> : graph.data ? <OperatingMap graph={graph.data} /> : offline ? <Empty>The scenario map loads when connected.</Empty> : graph.isError ? <ErrorNotice error={graph.error} /> : <Loading label="Loading road graph" />}
         {result && <div className="playback-controls">
           <Button variant="outline" size="icon" aria-label={playing ? 'Pause playback' : 'Play scenario'} onClick={() => { if (minute >= horizon) setMinute(0); setPlaying(!playing) }}>{playing ? <Pause size={16} /> : <Play size={16} />}</Button>
-          <Range label="Playback minute" value={minute} max={horizon} onChange={(value) => { setPlaying(false); setMinute(value) }} />
-          <span>{playback?.incidents.length ?? 0} open</span>
+          <Range icon={Clock} label="Playback minute" value={minute} max={horizon} onChange={(value) => { setPlaying(false); setMinute(value) }} />
+          <span>{playback?.incidents.length ?? 0} open reports</span>
         </div>}
       </section>
     </div>
     {result && <Benchmark result={result} />}
     <section className="panel">
-      <PanelTitle icon={<MapPinned size={18} />} title="Flood route demonstration" detail="Apply flood intensity to the command and responder maps, then compare the simulated route." />
+      <PanelTitle icon={<MapPinned size={18} />} title="Flood route demonstration" detail="Raise the flood level to close roads and see where a rescue team can still travel." />
       <div className="panel-body route-demo-grid">
         <div className="form-stack">
           <div className="form-grid">
-            <label className="field-label">From<select value={from} disabled={!graph.data} onChange={(event) => setFrom(event.target.value)}>{graph.data?.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label>
-            <label className="field-label">To<select value={to} disabled={!graph.data} onChange={(event) => setTo(event.target.value)}>{graph.data?.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label>
+            <label className="field-label"><span><RouteIcon size={15} aria-hidden="true" /> Start</span><select value={from} disabled={!graph.data} onChange={(event) => setFrom(event.target.value)}>{graph.data?.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label>
+            <label className="field-label"><span><MapPin size={15} aria-hidden="true" /> Destination</span><select value={to} disabled={!graph.data} onChange={(event) => setTo(event.target.value)}>{graph.data?.nodes.map((node) => <option value={node.id} key={node.id}>{node.label}</option>)}</select></label>
           </div>
-          <Range label="Shared map flood intensity" value={routeFlood} max={100} suffix="%" onChange={setRouteFlood} />
+          <Range icon={Droplets} label="Shared map flood intensity" value={routeFlood} max={100} suffix="%" onChange={setRouteFlood} />
           <div className="form-footer"><Button variant="outline" disabled={offline || applyFlood.isPending} onClick={() => { setRouteFlood(0); applyFlood.mutate(0) }}>Clear flood</Button><Button disabled={offline || applyFlood.isPending} onClick={() => applyFlood.mutate(routeFlood)}><Droplets size={17} /> Apply flood intensity</Button></div>
           {route.data && <div className="route-summary"><RouteIcon size={18} /><div><strong>{route.data.reachable ? route.data.distanceKm.toFixed(2) + ' km · ' + route.data.travelMinutes.toFixed(1) + ' simulated minutes' : 'No accessible route'}</strong><small>{graph.data?.intensity ?? 0}% active flood intensity · {graph.data?.blockedRoadIds.length ?? 0} roads blocked</small></div></div>}
           <ErrorNotice error={applyFlood.error ?? route.error} />

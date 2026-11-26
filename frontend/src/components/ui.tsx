@@ -45,7 +45,7 @@ export const hazardLabels: Record<Hazard, string> = {
 export const statusLabels: Record<IncidentStatus, string> = {
   REPORTED: 'Reported', ASSIGNED: 'Assigned', EN_ROUTE: 'En route', ON_SCENE: 'On scene', RESOLVED: 'Resolved',
 }
-export const severityColors: Record<Severity, string> = { LOW: '#75b39c', MEDIUM: '#efc76d', HIGH: '#fa9867', CRITICAL: '#ff7178' }
+export const severityColors: Record<Severity, string> = { LOW: '#7ee6c2', MEDIUM: '#ffde84', HIGH: '#ffa06d', CRITICAL: '#ff83ad' }
 export function SeverityBadge({ severity }: { severity: Severity }) {
   return <span className={cn('tag', 'tag-' + severity.toLowerCase())}><span className="tag-dot" />{severity.toLowerCase()}</span>
 }
@@ -54,9 +54,9 @@ export function StatusBadge({ status }: { status: IncidentStatus }) {
   return <span className={cn('tag', status === 'RESOLVED' ? 'tag-green' : 'tag-neutral')}>{statusLabels[status]}</span>
 }
 
-export function PageTitle({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
+export function PageTitle({ title, description, actions, icon }: { title: string; description: string; actions?: ReactNode; icon?: ReactNode }) {
   return <header className="page-title">
-    <div><h1>{title}</h1><p>{description}</p></div>
+    <div><div className="page-heading">{icon && <span className="page-heading-icon" aria-hidden="true">{icon}</span>}<h1>{title}</h1></div><p>{description}</p></div>
     {actions && <div className="page-actions">{actions}</div>}
   </header>
 }

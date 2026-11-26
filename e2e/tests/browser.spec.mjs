@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('a real network outage preserves a queued SOS across reload and synchronizes it once', async ({ page, context, request }) => {
-  await page.goto('/#/sos');
-  await expect(page.getByRole('heading', { name: 'Citizen SOS', exact: true })).toBeVisible();
+async function openOfflinePage(page, path, title) {
+  await page.goto(path);
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+}
 
+async function demoWorkspace(page, request) {
   const session = await page.evaluate(() => localStorage.getItem('hydrogrid-demo-session'));
   const coordinator = await request.post('/api/auth/demo', {
     headers: { 'X-Demo-Session': session },
@@ -13,13 +15,19 @@ test('a real network outage preserves a queued SOS across reload and synchronize
   });
   expect(coordinator.ok()).toBeTruthy();
   const { token } = await coordinator.json();
-  const incidents = async () => {
-    const response = await request.get('/api/incidents', {
+  return async (path) => {
+    const response = await request.get(path, {
       headers: { Authorization: `Bearer ${token}` },
     });
     expect(response.ok()).toBeTruthy();
     return response.json();
   };
+}
+
+test('a real network outage preserves a queued SOS across reload and synchronizes it once', async ({ page, context, request }) => {
+  await openOfflinePage(page, '/#/sos', 'Citizen SOS');
+  const read = await demoWorkspace(page, request);
+  const incidents = () => read('/api/incidents');
   const initial = await incidents();
 
   const log = page.getByRole('region', { name: 'SOS delivery log' });
@@ -39,6 +47,34 @@ test('a real network outage preserves a queued SOS across reload and synchronize
   await page.reload();
   await expect(log.getByText('Delivered', { exact: true })).toHaveCount(1);
   expect((await incidents()).filter(({ id }) => id === added[0].id)).toHaveLength(1);
+});
+
+test('a responder can complete a mission offline and replay both milestones once', async ({ page, context, request }) => {
+  await openOfflinePage(page, '/#/responder', 'Responder console');
+  await expect(page.getByRole('button', { name: 'Mark on scene' })).toBeVisible();
+
+  const read = await demoWorkspace(page, request);
+  const incidents = await read('/api/incidents');
+  const mission = incidents.find((incident) => incident.assignedUnitId && incident.status === 'EN_ROUTE');
+  expect(mission).toBeTruthy();
+  const getMission = async () => (await read('/api/incidents')).find(({ id }) => id === mission.id);
+
+  await context.setOffline(true);
+  await page.getByRole('button', { name: 'Mark on scene' }).click();
+  await page.getByRole('button', { name: 'Complete mission' }).click();
+  const queued = page.getByRole('status').filter({ hasText: '2 mission updates awaiting sync' });
+  await expect(queued).toBeVisible();
+  expect((await getMission()).status).toBe('EN_ROUTE');
+
+  await page.reload();
+  await expect(queued).toBeVisible();
+  await context.setOffline(false);
+  await expect(queued).toBeHidden();
+  await expect.poll(async () => (await getMission()).status).toBe('RESOLVED');
+
+  const timeline = await read(`/api/incidents/${mission.id}/timeline`);
+  const milestones = timeline.filter(({ type }) => type === 'MISSION_ON_SCENE' || type === 'MISSION_RESOLVED');
+  expect(milestones.map(({ type }) => type).sort()).toEqual(['MISSION_ON_SCENE', 'MISSION_RESOLVED']);
 });
 
 test('the mobile navigation reaches HydroGrid’s seven pages', async ({ page }) => {

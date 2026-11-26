@@ -1,6 +1,6 @@
 import {
   Activity, ArrowUpRight, Bell, ChevronDown, CircleHelp, Droplets, FlaskConical, Home,
-  HousePlus, LayoutDashboard, Menu, Radio, Siren, Wifi, WifiOff, X,
+  HousePlus, LayoutDashboard, Menu, Radio, ShieldCheck, Siren, Wifi, WifiOff, X,
 } from 'lucide-react'
 import { type PropsWithChildren, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
@@ -37,7 +37,7 @@ export function Shell({ children }: PropsWithChildren) {
       <div className="nav-heading">Workspace</div>
       <nav aria-label="Primary navigation">
         {links.map(({ href, label, icon: Icon }) => <NavLink end to={href} key={href} onClick={() => setMobileOpen(false)} className={({ isActive }) => cn('nav-link', isActive && 'nav-active')}>
-          <Icon size={18} strokeWidth={1.8} /><span>{label}</span>
+          <span className="nav-icon" aria-hidden="true"><Icon size={17} strokeWidth={1.9} /></span><span>{label}</span>
         </NavLink>)}
       </nav>
       <div className="sidebar-foot">
@@ -53,7 +53,7 @@ export function Shell({ children }: PropsWithChildren) {
         </div>
         <div className="topbar-actions">
           <div className="popover-anchor">
-            <button className={cn('network-chip', offline && 'network-chip-offline')} aria-expanded={networkOpen} onClick={() => { setNetworkOpen(!networkOpen); setAlertsOpen(false) }}>
+            <button className={cn('network-chip', offline && 'network-chip-offline', live && !offline && 'network-chip-live')} aria-expanded={networkOpen} onClick={() => { setNetworkOpen(!networkOpen); setAlertsOpen(false) }}>
               {offline ? <WifiOff size={15} /> : <Wifi size={15} />}<span>{offline ? 'Offline' : live ? 'Live updates' : 'Connecting'}</span><ChevronDown size={13} />
             </button>
             {networkOpen && <div className="popover">
@@ -65,7 +65,7 @@ export function Shell({ children }: PropsWithChildren) {
             <Button variant="ghost" size="icon" className="bell-button" aria-label="Sync notifications" aria-expanded={alertsOpen} onClick={() => { setAlertsOpen(!alertsOpen); setNetworkOpen(false) }}><Bell size={18} />{pending > 0 && <span className="bell-dot" />}</Button>
             {alertsOpen && <div className="popover"><strong>Sync notifications</strong><p>{pending ? String(pending) + ' action' + (pending === 1 ? ' is' : 's are') + ' waiting to sync.' : 'No actions waiting to sync.'}</p><Link className="text-link" to="/sos" onClick={() => setAlertsOpen(false)}>View delivery log <ArrowUpRight size={14} /></Link></div>}
           </div>
-          <div className="role-avatar" title="Synthetic demonstration workspace">HG</div>
+          <div className="role-avatar" title="Synthetic demonstration workspace"><ShieldCheck size={17} aria-hidden="true" /></div>
         </div>
       </div>
       <main id="main" className="page">{children}</main>

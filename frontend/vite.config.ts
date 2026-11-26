@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const apiTarget = process.env.HYDROGRID_API_URL || 'http://localhost:8080'
+const apiTarget = process.env.HYDROGRID_API_URL || 'http://localhost:8081'
 
 export default defineConfig({
   plugins: [

@@ -363,6 +363,7 @@ class HydroGridIntegrationTest {
     private String token(UUID session, String role) {
         var headers = new HttpHeaders();
         headers.set("X-Demo-Session", session.toString());
+        headers.set("X-Demo-Owner", sha256("fixture-owner:" + session));
         var response = http.postForEntity("/api/auth/demo", new HttpEntity<>(Map.of("role", role), headers), JsonNode.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         return response.getBody().get("token").asText();

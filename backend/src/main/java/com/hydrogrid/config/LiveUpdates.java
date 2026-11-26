@@ -19,7 +19,7 @@ public class LiveUpdates {
     }
 
     public void publish(UUID session, String type, UUID entityId) {
-        events.publishEvent(new CommittedUpdate(session, new Update(type, entityId)));
+        events.publishEvent(new CommittedUpdate(session, new Update(UUID.randomUUID(), type, entityId)));
     }
 
     @TransactionalEventListener

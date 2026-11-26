@@ -2,10 +2,12 @@ package com.hydrogrid.store;
 
 import com.hydrogrid.api.Models.AuditEvent;
 import com.hydrogrid.config.LiveUpdates;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
@@ -26,12 +28,15 @@ public class SessionStore {
     }
 
     @Transactional
-    public void ensureSession(UUID session) {
-        int inserted = db.sql("INSERT INTO demo_sessions(id) VALUES (:id) ON CONFLICT DO NOTHING")
-                .param("id", session).update();
+    public void ensureSession(UUID session, byte[] ownerHash) {
+        int inserted = db.sql("INSERT INTO demo_sessions(id, owner_hash) VALUES (:id, :owner) ON CONFLICT DO NOTHING")
+                .param("id", session).param("owner", ownerHash).update();
         if (inserted == 0) {
-            db.sql("UPDATE demo_sessions SET accessed_at = clock_timestamp() WHERE id = :id")
-                    .param("id", session).update();
+            int owned = db.sql("""
+                    UPDATE demo_sessions SET accessed_at = clock_timestamp()
+                    WHERE id = :id AND owner_hash = :owner
+                    """).param("id", session).param("owner", ownerHash).update();
+            if (owned == 0) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid exercise workspace proof");
             return;
         }
 

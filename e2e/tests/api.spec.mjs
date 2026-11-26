@@ -1,9 +1,12 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { test, expect } from '@playwright/test';
 
+const ownerKeys = new Map();
+
 async function apiRole(request, session, role) {
+  if (!ownerKeys.has(session)) ownerKeys.set(session, randomBytes(32).toString('hex'));
   const login = await request.post('/api/auth/demo', {
-    headers: { 'X-Demo-Session': session },
+    headers: { 'X-Demo-Session': session, 'X-Demo-Owner': ownerKeys.get(session) },
     data: { role },
   });
   expect(login.ok()).toBeTruthy();
@@ -160,4 +163,20 @@ test('dispatch and mission completion update an incident in one browser workspac
 
   const incidents = await (await coordinator.get('/api/incidents')).json();
   expect(incidents.find((row) => row.id === id)?.status).toBe('RESOLVED');
+});
+
+test('a valid exercise ID cannot mint tokens without its ownership proof', async ({ request }) => {
+  const session = randomUUID();
+  const authorized = await apiRole(request, session, 'COORDINATOR');
+  expect((await authorized.get('/api/incidents')).status()).toBe(200);
+  const proofMissing = await request.post('/api/auth/demo', {
+    headers: { 'X-Demo-Session': session },
+    data: { role: 'COORDINATOR' },
+  });
+  expect(proofMissing.status()).toBe(400);
+  const wrongProof = await request.post('/api/auth/demo', {
+    headers: { 'X-Demo-Session': session, 'X-Demo-Owner': randomBytes(32).toString('hex') },
+    data: { role: 'COORDINATOR' },
+  });
+  expect(wrongProof.status()).toBe(403);
 });

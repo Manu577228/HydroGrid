@@ -90,6 +90,8 @@ export type Simulation = {
   hydroGridDispatches: SimulationDispatch[]
 }
 export type QueueRecord = {
+  localNote?: string
+  attempts?: number
   clientId: string
   session: string
   kind: 'report' | 'mission'

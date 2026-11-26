@@ -28,6 +28,8 @@ import static java.util.UUID.randomUUID;
 
 @Service
 public class IncidentStore {
+    private static final Set<String> EXERCISE_REVIEW_REASONS =
+            Set.of("Field verification", "Conditions changed", "Report correction");
     private static final String INCIDENT_SELECT = """
             SELECT i.*, ST_Y(i.position) lat, ST_X(i.position) lng
             FROM incidents i WHERE session_id = :session
@@ -63,6 +65,10 @@ public class IncidentStore {
                 .sorted(Comparator.comparingInt(Incident::score).reversed()
                         .thenComparing(Incident::createdAt).thenComparing(Incident::id))
                 .toList();
+    }
+
+    public Incident detail(UUID session, UUID id) {
+        return view(get(session, id, false));
     }
 
     public List<Unit> units(UUID session) {
@@ -182,7 +188,9 @@ public class IncidentStore {
     public Incident override(UUID session, UUID id, TriageOverride override) {
         var incident = get(session, id, true);
         if (incident.status() == Status.RESOLVED) throw conflict("This incident is resolved");
-        String reason = allowCustomReports ? override.reason().strip() : "Coordinator override";
+        String requested = override.reason().strip();
+        String reason = allowCustomReports || EXERCISE_REVIEW_REASONS.contains(requested)
+                ? requested : "Coordinator override";
         db.sql("UPDATE incidents SET override_severity = :severity, override_reason = :reason WHERE id = :id")
                 .param("severity", override.severity().name()).param("reason", reason).param("id", id).update();
         sessions.record(session, id, "TRIAGE_OVERRIDDEN", override.severity().name() + " · " + reason);

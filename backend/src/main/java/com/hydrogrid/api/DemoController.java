@@ -23,8 +23,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,15 +60,27 @@ class DemoController {
     }
 
     @PostMapping("/api/auth/demo")
-    DemoToken token(@RequestHeader("X-Demo-Session") UUID session, @Valid @RequestBody DemoLogin login) {
+    DemoToken token(@RequestHeader("X-Demo-Session") UUID session, @RequestHeader("X-Demo-Owner") String owner,
+                    @Valid @RequestBody DemoLogin login) {
         if (!demoEnabled) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Demo accounts are disabled");
-        sessions.ensureSession(session);
+        if (!owner.matches("[0-9a-f]{64}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid exercise workspace proof");
+        }
+        sessions.ensureSession(session, ownerHash(owner));
         Instant now = Instant.now();
         var claims = JwtClaimsSet.builder()
                 .issuer(SecurityConfiguration.TOKEN_ISSUER).subject("demo-" + login.role().name().toLowerCase(java.util.Locale.ROOT))
-                .issuedAt(now).expiresAt(now.plus(Duration.ofHours(8)))
-                .claim("session", session.toString()).claim("role", login.role().name()).build();
+                .issuedAt(now).expiresAt(now.plus(Duration.ofHours(2)))
+                .claim("session", session.toString()).claim("demoOwned", true).claim("role", login.role().name()).build();
         var encoded = encoder.encode(JwtEncoderParameters.from(JwsHeader.with(MacAlgorithm.HS256).build(), claims));
         return new DemoToken(encoded.getTokenValue(), login.role());
+    }
+
+    private static byte[] ownerHash(String owner) {
+        try {
+            return MessageDigest.getInstance("SHA-256").digest(HexFormat.of().parseHex(owner));
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException(impossible);
+        }
     }
 }

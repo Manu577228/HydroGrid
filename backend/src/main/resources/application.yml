@@ -12,7 +12,7 @@ spring:
     problemdetails:
       enabled: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/hydrogrid}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/hydrogrid}
     username: ${SPRING_DATASOURCE_USERNAME:hydrogrid}
     password: ${SPRING_DATASOURCE_PASSWORD:hydrogrid}
     hikari:

@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 
 const base = process.env.HYDROGRID_BASE_URL ?? 'http://127.0.0.1:8080';
 const session = randomUUID();
@@ -14,6 +14,7 @@ const request = async (path, body, headers) => {
 
 const { token } = await request('/api/auth/demo', { role: 'COORDINATOR' }, {
   'X-Demo-Session': session,
+  'X-Demo-Owner': randomBytes(32).toString('hex'),
 });
 const headers = { Authorization: `Bearer ${token}` };
 const inputs = { incidents: 100, units: 15, floodIntensity: 40, networkDisruption: 30 };

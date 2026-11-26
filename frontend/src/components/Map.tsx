@@ -21,7 +21,7 @@ const mapColors = {
   busyUnit: '#729bbb',
 }
 
-function FitMap({ graph, selected, route }: { graph: Graph; selected?: MapIncident; route?: Route }) {
+function FitMap({ graph, selected, route, focus }: { graph: Graph; selected?: MapIncident; route?: Route; focus?: number }) {
   const map = useMap()
   const nodes = graph.nodes
   useEffect(() => {
@@ -31,6 +31,9 @@ function FitMap({ graph, selected, route }: { graph: Graph; selected?: MapIncide
     if (route?.path.length) map.fitBounds(L.latLngBounds(route.path.map(({ lat, lng }) => [lat, lng])), { padding: [32, 32], maxZoom: 15, animate: false })
     else if (selected && !map.getBounds().contains([selected.lat, selected.lng])) map.panTo([selected.lat, selected.lng])
   }, [map, selected?.id, route?.nodeIds.join(',')])
+  useEffect(() => {
+    if (focus && selected) map.setView([selected.lat, selected.lng], Math.max(15, map.getZoom()), { animate: false })
+  }, [map, focus])
   return null
 }
 
@@ -43,14 +46,16 @@ function MapControls({ graph }: { graph: Graph }) {
   </div>
 }
 
-export function OperatingMap({ graph, incidents = [], units = [], shelters = [], selected, route, onSelect, className }: {
+export function OperatingMap({ graph, incidents = [], units = [], shelters = [], selected, route, focus, onSelect, onSelectShelter, className }: {
   graph: Graph
   incidents?: MapIncident[]
   units?: MapUnit[]
   shelters?: MapShelter[]
   selected?: MapIncident
   route?: Route
+  focus?: number
   onSelect?: (id: string) => void
+  onSelectShelter?: (id: string) => void
   className?: string
 }) {
   const [showLayers, setShowLayers] = useState(false)
@@ -63,7 +68,7 @@ export function OperatingMap({ graph, incidents = [], units = [], shelters = [],
   )
   return <div className={cn('map-wrap', className)}>
     <MapContainer center={center} zoom={14} zoomControl={false} attributionControl={false} preferCanvas className="operating-map" aria-label="Simulated Bengaluru operating map">
-      <FitMap graph={graph} selected={selected} route={route} />
+      <FitMap graph={graph} selected={selected} route={route} focus={focus} />
       {graph.roads.map((road) => {
         const from = nodes.get(road.from)
         const to = nodes.get(road.to)
@@ -84,7 +89,7 @@ export function OperatingMap({ graph, incidents = [], units = [], shelters = [],
         <Polyline positions={routePath} pathOptions={{ color: '#53ddd9', weight: 7, opacity: 0.35, interactive: false }} />
         <Polyline positions={routePath} pathOptions={{ color: mapColors.route, weight: 3.5, opacity: 1, interactive: false }} />
       </>}
-      {layers.shelters && shelters.map((shelter) => <CircleMarker key={shelter.id} center={[shelter.lat, shelter.lng]} radius={6.5} pathOptions={{ color: mapColors.stroke, weight: 2, fillColor: mapColors.shelter, fillOpacity: 1 }}><Tooltip>{shelter.name}</Tooltip></CircleMarker>)}
+      {layers.shelters && shelters.map((shelter) => <CircleMarker key={shelter.id} center={[shelter.lat, shelter.lng]} radius={6.5} pathOptions={{ color: mapColors.stroke, weight: 2, fillColor: mapColors.shelter, fillOpacity: 1 }} eventHandlers={{ click: () => onSelectShelter?.(shelter.id) }}><Tooltip>{shelter.name}</Tooltip></CircleMarker>)}
       {layers.units && units.map((unit) => <CircleMarker key={unit.id} center={[unit.lat, unit.lng]} radius={7} pathOptions={{ color: mapColors.stroke, weight: 2, fillColor: unit.status === 'BUSY' ? mapColors.busyUnit : mapColors.availableUnit, fillOpacity: 1 }}><Tooltip>{unit.name}</Tooltip></CircleMarker>)}
       {layers.incidents && incidents.map((item) => {
         const active = item.id === selected?.id

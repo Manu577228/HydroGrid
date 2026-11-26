@@ -2,6 +2,8 @@
 
 HydroGrid is a flood-response exercise on a synthetic map near Bengaluru. It puts the offline report, route decision, unit dispatch, shelter admission, and audit trail in the same browser workspace. Live Bengaluru adds sourced streets, current weather estimates, government bulletins, and a private device test. [Open the live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Follow the four-minute walkthrough](demo.md)
 
+The 2.0 redesign, release decisions, and scoped verification are recorded in the [2.0 release evidence](release-2.0.md).
+
 ## Lifecycle coverage and depth · 30
 
 | Stage | Decision or result | Evidence |

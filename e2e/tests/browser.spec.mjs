@@ -8,9 +8,9 @@ async function openOfflinePage(page, path, title) {
 }
 
 async function demoWorkspace(page, request) {
-  const session = await page.evaluate(() => localStorage.getItem('hydrogrid-demo-session'));
+  const session = await page.evaluate(() => JSON.parse(localStorage.getItem('hydrogrid-demo-credentials')));
   const coordinator = await request.post('/api/auth/demo', {
-    headers: { 'X-Demo-Session': session },
+    headers: { 'X-Demo-Session': session.id, 'X-Demo-Owner': session.owner },
     data: { role: 'COORDINATOR' },
   });
   expect(coordinator.ok()).toBeTruthy();
@@ -77,10 +77,11 @@ test('a responder can complete a mission offline and replay both milestones once
   expect(milestones.map(({ type }) => type).sort()).toEqual(['MISSION_ON_SCENE', 'MISSION_RESOLVED']);
 });
 
-test('the mobile navigation reaches HydroGrid’s nine pages', async ({ page }) => {
+test('the mobile navigation reaches HydroGrid’s exercise and public pages', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const links = [
+    ['Dashboard', 'dashboard'],
     ['Command center', 'command'],
     ['Live Bengaluru', 'live'],
     ['City operations', 'operations'],

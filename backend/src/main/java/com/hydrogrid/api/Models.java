@@ -76,5 +76,5 @@ public final class Models {
             @NotNull Long seed, @Min(1) @Max(250) int incidents, @Min(1) @Max(40) int units,
             @Min(0) @Max(100) int floodIntensity, @Min(0) @Max(100) int networkDisruption
     ) {}
-    public record Update(String type, UUID entityId) {}
+    public record Update(UUID id, String type, UUID entityId) {}
 }

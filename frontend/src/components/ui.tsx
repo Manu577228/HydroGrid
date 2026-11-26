@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { clsx, type ClassValue } from 'clsx'
 import { CircleAlert, LoaderCircle, X } from 'lucide-react'
-import type { ButtonHTMLAttributes, PropsWithChildren, ReactNode } from 'react'
+import { type ComponentPropsWithRef, type PropsWithChildren, type ReactNode, type RefObject, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 import type { Hazard, IncidentStatus, Severity } from '../types'
 
@@ -16,20 +16,29 @@ const buttonVariants = cva('button', {
   defaultVariants: { variant: 'default', size: 'default' },
 })
 
-export function Button({ className, variant, size, type = 'button', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants>) {
-  return <button type={type} className={cn(buttonVariants({ variant, size }), className)} {...props} />
+export function Button({ className, variant, size, type = 'button', ref, ...props }: ComponentPropsWithRef<'button'> & VariantProps<typeof buttonVariants>) {
+  return <button type={type} ref={ref} className={cn(buttonVariants({ variant, size }), className)} {...props} />
 }
 
-export function Modal({ open, onOpenChange, title, description, children }: PropsWithChildren<{
+export function Modal({ open, onOpenChange, title, description, initialFocus, children }: PropsWithChildren<{
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
   description: string
+  initialFocus?: RefObject<HTMLElement | null>
 }>) {
+  const returnFocus = useRef<HTMLElement>(null)
   return <Dialog.Root open={open} onOpenChange={onOpenChange}>
     <Dialog.Portal>
       <Dialog.Overlay className="modal-overlay" />
-      <Dialog.Content className="modal-content">
+      <Dialog.Content className="modal-content" onOpenAutoFocus={(event) => {
+        returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+        if (initialFocus?.current) { event.preventDefault(); initialFocus.current.focus() }
+      }} onCloseAutoFocus={(event) => {
+        event.preventDefault()
+        const target = returnFocus.current?.isConnected ? returnFocus.current : document.getElementById('main')
+        target?.focus()
+      }}>
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Description>{description}</Dialog.Description>
         <Dialog.Close asChild><button className="modal-close" aria-label="Close dialog"><X size={18} /></button></Dialog.Close>
@@ -74,7 +83,10 @@ export function ErrorNotice({ error }: { error: unknown }) {
 }
 
 export function Loading({ label = 'Loading HydroGrid' }: { label?: string }) {
-  return <div className="empty-state" role="status"><LoaderCircle className="animate-spin" size={19} />{label}</div>
+  return <div className="empty-state platform-loading" role="status">
+    <span><LoaderCircle className="animate-spin" size={17} aria-hidden="true" />{label}</span>
+    <div className="platform-skeleton" aria-hidden="true"><i /><i /></div>
+  </div>
 }
 
 export function Empty({ children }: PropsWithChildren) {

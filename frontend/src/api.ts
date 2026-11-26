@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query'
-import { Client } from '@stomp/stompjs'
+import { Client, ReconnectionTimeMode } from '@stomp/stompjs'
 import type {
   Cluster, Graph, Incident, IncidentInput, IncidentStatus, Recommendations, Reservation,
   Role, Route, Scenario, Severity, Shelter, Simulation, TimelineEvent, Unit,
@@ -9,7 +9,8 @@ export const client = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: 12_000, refetchOnWindowFocus: true } },
 })
 
-const sessionStorageKey = 'hydrogrid-demo-session'
+const demoStorageKey = 'hydrogrid-demo-credentials'
+type DemoCredentials = { id: string; owner: string; legacyId?: string }
 
 export function uuid() {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
@@ -19,19 +20,30 @@ export function uuid() {
   return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-')
 }
 
-export function getSession() {
-  const existing = localStorage.getItem(sessionStorageKey)
-  if (existing) return existing
-  const generated = uuid()
-  localStorage.setItem(sessionStorageKey, generated)
-  return generated
+export function getDemoCredentials(): DemoCredentials {
+  const stored = localStorage.getItem(demoStorageKey)
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored) as DemoCredentials
+      if (typeof parsed.id === 'string' && /^[0-9a-f]{64}$/.test(parsed.owner)) return parsed
+    } catch {
+      // A corrupted credential cannot safely open an existing workspace.
+    }
+  }
+  const legacyId = localStorage.getItem('hydrogrid-demo-session') ?? undefined
+  const owner = Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) => byte.toString(16).padStart(2, '0')).join('')
+  const credentials = { id: uuid(), owner, legacyId }
+  localStorage.setItem(demoStorageKey, JSON.stringify(credentials))
+  return credentials
 }
+
+export function getSession() { return getDemoCredentials().id }
 
 export class ApiError extends Error {
   constructor(readonly status: number, message: string) { super(message) }
 }
 
-const tokens = new Map<Role, string>()
+const tokens = new Map<Role, { value: string; refreshAt: number }>()
 const logins = new Map<Role, Promise<string>>()
 let simulatedOffline = localStorage.getItem('hydrogrid-no-network') === 'true'
 
@@ -62,22 +74,23 @@ async function call<T>(url: string, options: RequestInit = {}): Promise<T> {
 
 async function token(role: Role): Promise<string> {
   const existing = tokens.get(role)
-  if (existing) return existing
+  if (existing && existing.refreshAt > Date.now()) return existing.value
   const inFlight = logins.get(role)
   if (inFlight) return inFlight
+  const { id, owner } = getDemoCredentials()
   const login = call<{ token: string }>('/api/auth/demo', {
     method: 'POST',
-    headers: { 'X-Demo-Session': getSession() },
+    headers: { 'X-Demo-Session': id, 'X-Demo-Owner': owner },
     body: JSON.stringify({ role }),
   }).then((result) => {
-    tokens.set(role, result.token)
+    tokens.set(role, { value: result.token, refreshAt: Date.now() + 90 * 60_000 })
     return result.token
   }).finally(() => logins.delete(role))
   logins.set(role, login)
   return login
 }
 
-async function request<T>(role: Role, path: string, body?: unknown): Promise<T> {
+export async function request<T>(role: Role, path: string, body?: unknown): Promise<T> {
   const send = async () => call<T>('/api' + path, {
     method: body === undefined ? 'GET' : 'POST',
     headers: { Authorization: 'Bearer ' + await token(role) },
@@ -115,13 +128,25 @@ export const api = {
   simulation: (scenario: Scenario) => request<Simulation>('COORDINATOR', '/simulation', scenario),
 }
 
+export function refreshExercise() {
+  return client.invalidateQueries({ predicate: (query) => {
+    const key = String(query.queryKey[0])
+    return key !== 'simulation' && !/^(account|bengaluru|karnataka|agency|private)[-:]/.test(key)
+  } })
+}
+
 export function liveUpdates(onChange: (connected: boolean) => void) {
   if (isSimulatedOffline() || !navigator.onLine) return () => {}
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const seen = new Set<string>()
+  let renew: number | undefined
+  let stopped = false
   const connection = new Client({
     brokerURL: protocol + '//' + location.host + '/ws',
-    reconnectDelay: 5_000,
-    connectionTimeout: 8_000,
+    reconnectDelay: 1_000 + Math.floor(Math.random() * 900),
+    reconnectTimeMode: ReconnectionTimeMode.EXPONENTIAL,
+    maxReconnectDelay: 25_000 + Math.floor(Math.random() * 5_000),
+    connectionTimeout: 10_000,
     heartbeatIncoming: 15_000,
     heartbeatOutgoing: 15_000,
     beforeConnect: async () => {
@@ -132,19 +157,40 @@ export function liveUpdates(onChange: (connected: boolean) => void) {
       }
     },
     onConnect: () => {
+      if (stopped) return
       onChange(true)
-      connection.subscribe('/topic/updates/' + getSession(), () => {
-        void client.invalidateQueries({ predicate: (query) => query.queryKey[0] !== 'simulation' })
+      void refreshExercise()
+      renew = window.setTimeout(() => {
+        tokens.delete('COORDINATOR')
+        connection.forceDisconnect()
+      }, 85 * 60_000)
+      connection.subscribe('/topic/updates/' + getSession(), (message) => {
+        try {
+          const update = JSON.parse(message.body) as { id?: string }
+          if (update.id) {
+            if (seen.has(update.id)) return
+            seen.add(update.id)
+            if (seen.size > 100) seen.delete(seen.values().next().value!)
+          }
+        } catch {
+          // An unrecognized event still triggers a safe re-fetch.
+        }
+        void refreshExercise()
       })
     },
     onStompError: () => {
       tokens.delete('COORDINATOR')
-      onChange(false)
+      if (!stopped) onChange(false)
     },
-    onWebSocketClose: () => onChange(false),
+    onWebSocketClose: () => {
+      window.clearTimeout(renew)
+      if (!stopped) onChange(false)
+    },
   })
   connection.activate()
   return () => {
+    stopped = true
+    window.clearTimeout(renew)
     void connection.deactivate()
     onChange(false)
   }

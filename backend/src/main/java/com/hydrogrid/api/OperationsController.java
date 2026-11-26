@@ -158,12 +158,16 @@ class OperationsController {
 
     @PostMapping("/simulation")
     @PreAuthorize("hasRole('COORDINATOR')")
-    Simulation simulate(@Valid @RequestBody SimulationRequest request) {
+    Simulation simulate(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody SimulationRequest request) {
+        session(jwt);
         return graph.engine().simulate(new ScenarioInput(
                 request.seed(), request.incidents(), request.units(), request.floodIntensity(), request.networkDisruption()));
     }
 
-    private static UUID session(Jwt jwt) {
+    static UUID session(Jwt jwt) {
+        if (!Boolean.TRUE.equals(jwt.getClaimAsBoolean("demoOwned")) || jwt.getClaimAsString("session") == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "An owned exercise workspace is required");
+        }
         return UUID.fromString(jwt.getClaimAsString("session"));
     }
 }

@@ -1,13 +1,14 @@
 import { ArrowRight, BusFront, CircleCheck, ClipboardCheck, MapPin, Navigation, Radio, Route as RouteIcon, Users, WifiOff } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { api } from '../api'
+import { api, getSession } from '../api'
 import { OperatingMap } from '../components/Map'
 import { Button, Empty, equipmentLabel, ErrorNotice, Loading, PageTitle, PanelTitle, SeverityBadge, StatusBadge, statusLabels } from '../components/ui'
 import { useNetwork } from '../network'
-import { queueMission, useQueue } from '../offline'
+import { queueMission, retryQueuedAction, useQueue } from '../offline'
 import { useSnapshot } from '../snapshots'
 import type { IncidentStatus } from '../types'
+import './workflows.css'
 
 const nextStatus: Partial<Record<IncidentStatus, IncidentStatus>> = { ASSIGNED: 'EN_ROUTE', EN_ROUTE: 'ON_SCENE', ON_SCENE: 'RESOLVED' }
 const nextLabels: Partial<Record<IncidentStatus, string>> = { ASSIGNED: 'Mark en route', EN_ROUTE: 'Mark on scene', ON_SCENE: 'Complete mission' }
@@ -23,7 +24,9 @@ export function ResponderPage() {
   const incidents = useSnapshot(['incidents', 'responder'], () => api.incidents('RESPONDER'))
   const units = useSnapshot(['units', 'responder'], () => api.units('RESPONDER'))
   const graph = useSnapshot(['graph', 'responder'], () => api.graph('RESPONDER'))
-  const queue = useQueue().filter((action) => action.kind === 'mission')
+  const outbox = useQueue()
+  const queue = outbox.filter((action) => action.kind === 'mission' && action.session === getSession())
+  const archived = outbox.filter((action) => action.kind === 'mission' && action.session !== getSession() && action.status !== 'sent').length
   const [selectedId, setSelectedId] = useState<string>()
   const [error, setError] = useState<unknown>()
   const [saving, setSaving] = useState(false)
@@ -54,6 +57,7 @@ export function ResponderPage() {
   return <>
     <PageTitle icon={<Radio size={24} aria-hidden="true" />} title="Responder console" description="Check a rescue team’s route, then mark when it leaves, arrives, and completes the mission." />
     {offline && <div className="notice"><WifiOff size={17} /> Offline. Mission updates stay on this device until you reconnect.</div>}
+    {archived > 0 && <div className="notice" role="status"><ClipboardCheck size={16} />{archived} unsent mission updates are saved from the previous exercise. Their original assignments cannot be resumed.</div>}
     <div className="workspace-split wide-first">
       <section className="panel">
         <PanelTitle icon={<RouteIcon size={17} />} title="Mission route" detail="Simulated travel through the current road network" />
@@ -85,7 +89,9 @@ export function ResponderPage() {
         </div>
         <ErrorNotice error={error ?? failed?.error} />
         {pending.length > 0 && <div className="notice" role="status"><WifiOff size={17} /> {pending.length} mission update{pending.length === 1 ? '' : 's'} awaiting sync.</div>}
-        {next && <div><Button disabled={saving} onClick={() => void update()}><ArrowRight size={16} />{nextLabels[shownStatus]}</Button></div>}
+        {failed && <div><Button variant="outline" size="sm" onClick={() => void retryQueuedAction(failed.clientId).catch(setError)}>Retry mission update</Button></div>}
+        {shownStatus === 'RESOLVED' && pending.length === 0 && <p role="status" className="notice notice-success"><CircleCheck size={17} /> Mission completion recorded.</p>}
+        {next && <div><Button className="responder-action" size="lg" disabled={saving} onClick={() => void update()}><ArrowRight size={16} />{nextLabels[shownStatus]}</Button></div>}
       </div>
     </section>}
   </>

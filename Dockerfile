@@ -22,6 +22,7 @@ COPY --from=builder --chown=app:app /tmp/hydrogrid.jar /app/hydrogrid.jar
 COPY --chmod=755 deploy/entrypoint.sh /app/entrypoint.sh
 USER app
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=50.0 -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=48m -XX:ActiveProcessorCount=2 -Xss512k"
+ENV SERVER_COMPRESSION_ENABLED=true
 EXPOSE 8080
 ENTRYPOINT ["/app/entrypoint.sh"]
 

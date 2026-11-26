@@ -9,5 +9,6 @@ target/
 dist/
 playwright-report/
 test-results/
+*.tsbuildinfo
 *.log
 

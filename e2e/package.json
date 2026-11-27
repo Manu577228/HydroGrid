@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test"
+    "test": "playwright test",
+    "check:accessibility": "node accessibility.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.58.2"
+    "@playwright/test": "1.58.2",
+    "axe-core": "4.14.1"
   }
 }

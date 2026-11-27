@@ -198,12 +198,11 @@ export function Shell({ children }: PropsWithChildren) {
   }, [])
 
   useEffect(() => {
-    setPaletteOpen(false)
     if (!commandView) {
       setFocus(false)
       if (document.fullscreenElement === document.documentElement) void document.exitFullscreen().catch(() => {})
     }
-  }, [location.pathname, commandView])
+  }, [commandView])
 
   function toggleFocus() {
     if (focus) {

@@ -9,10 +9,10 @@
 | Libraries | React, Leaflet, Recharts, Lucide, Spring and other dependencies run the application. | Dependencies retain their respective licenses. Inspect resolved versions in [frontend lockfile](../frontend/package-lock.json), [browser test lockfile](../e2e/package-lock.json), and [Maven build](../backend/pom.xml). |
 | HydroGrid visuals | The landing image is an original generated illustration. Gallery images are actual captures of the application and exercise. | [Landing illustration](../frontend/public/hydrogrid-aerial.webp) · [Application captures](showcase.md) |
 
-## Repository license
+## Creator and repository copyright
 
-The repository has no root software license file. Public source visibility and external data licenses apply to different material. The participant can consider the MIT License for original application code and documentation, subject to rights-holder approval. ODbL and other provider terms continue to govern their data. [GitHub repository licensing guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) · [MIT license text and overview](https://choosealicense.com/licenses/mit/)
+Manu Bharadwaj created and developed HydroGrid. Copyright © 2026 Manu Bharadwaj. All rights reserved in the original project materials he owns. The creator supplied the README portrait. Third-party software and data remain governed by their respective licenses and provider terms. [Project copyright notice](../COPYRIGHT.md) · [Creator profile](https://github.com/Manu577228)
 
 ## Acknowledgments
 
-Thanks to OpenStreetMap contributors, the public data providers, and the maintainers of the dependencies listed in the build manifests. Codex supported analysis, implementation, verification and documentation. The participant is responsible for the project decisions and submission. [Codex evidence index](judging.md)
+Thanks to OpenStreetMap contributors, the public data providers, and the maintainers of the dependencies listed in the build manifests. Codex supported analysis, implementation, verification and documentation. Manu Bharadwaj made the project decisions and is responsible for the submission. [Codex evidence index](judging.md)

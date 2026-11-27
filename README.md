@@ -2,6 +2,13 @@
 
 # HydroGrid — Real-Time Disaster Response and Rescue Coordination Platform
 
+<table>
+  <tr>
+    <td><img src="docs/assets/manu-bharadwaj.png" width="96" alt="Portrait of HydroGrid creator Manu Bharadwaj" /></td>
+    <td><strong>Created and built by <a href="https://github.com/Manu577228">Manu Bharadwaj</a></strong><br />Solo developer · Built with Codex</td>
+  </tr>
+</table>
+
 **Every SOS Counts.** Practice the path from a citizen’s offline SOS to triage, dispatch, responder updates, and shelter admission. Then replay the same flood scenario under two dispatch policies and inspect the trade-offs.
 
 [![HydroGrid checks on the submission branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=submission-final-audit)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)
@@ -264,6 +271,10 @@ flowchart LR
 - Citizen accounts lack email verification and password recovery. Private operator enrollment requires local administrator configuration. Free hosting can sleep. The benchmark and isolated load checks establish prototype behavior.
 - Production extension would require authorized event feeds and operators, verified identity recovery and retention policies, and field validation with an agency. [Security and residual risks](docs/security.md) · [Data attribution and roadmap](docs/attribution.md)
 
-OpenStreetMap contributors supply the bounded street extract under ODbL. Open-Meteo, NDMA SACHET, and Bengaluru Traffic Police via IUDX are separately attributed. The landing artwork is an illustration. The repository currently has no project-wide license file. Its public visibility gives judges source access. [Attribution and license status](docs/attribution.md)
+## Copyright and credits
+
+**© 2026 Manu Bharadwaj. All rights reserved** in the original HydroGrid project materials he owns. [Copyright notice](COPYRIGHT.md)
+
+OpenStreetMap contributors supply the bounded street extract under ODbL. Open-Meteo, NDMA SACHET, and Bengaluru Traffic Police via IUDX retain their respective terms. The landing artwork is an illustration. [Source attribution and acknowledgments](docs/attribution.md)
 
 [Live HydroGrid](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Public repository](https://github.com/Manu577228/HydroGrid) · [Codex Evidence Pack](docs/evidence/CODEX_EVIDENCE_PACK.md) · [Final checklist](docs/submission-checklist.md)

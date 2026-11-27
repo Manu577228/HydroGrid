@@ -27,5 +27,5 @@ The competition brief governs this checklist. Keep workshop details and particip
 
 - [ ] Confirm the official entry form and deadline from the workshop organizer. Confirm eligibility, solo participation, workshop attendance date, and registered email directly with the organizer.
 - [ ] Approve any push or merge before it happens. After merge, replace any review-branch references with the final public Evidence Pack and confirm the link while signed out.
-- [ ] Decide whether to approve a source-code license. The current repository has no root license and external data terms still apply. [License options](attribution.md)
+- [ ] Confirm creator credit and the scope of the project copyright notice. Third-party data and package terms still apply. [Copyright notice](../COPYRIGHT.md) · [Attribution](attribution.md)
 - [ ] Enter the project title **HydroGrid — Real-Time Disaster Response and Rescue Coordination Platform** and final public URLs. Submit from the official entry form when you are satisfied with the evidence.

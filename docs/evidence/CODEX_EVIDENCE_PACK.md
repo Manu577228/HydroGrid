@@ -1,5 +1,7 @@
 # HydroGrid 2.0 Codex evidence pack
 
+**Creator and solo participant** · [Manu Bharadwaj](https://github.com/Manu577228)
+
 HydroGrid lets a judge rehearse how a citizen report travels through a flood-response system with unreliable connectivity. A browser-owned workspace links a queued SOS, a confirmed dispatch, a responder journey and shelter admission to an audit trail. Its separate Bengaluru view displays sourced geographic and environmental data. All rescue outcomes in the exercise are simulated.
 
 [Public repository](https://github.com/Manu577228/HydroGrid) · [Live Vercel exercise](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Judge walkthrough](../demo.md) · [Persistent Codex instructions](../../AGENTS.md) · [Capability matrix](CAPABILITY_MATRIX.md) · [Model decision log](MODEL_DECISION_LOG.md) · [Review findings](REVIEW_FINDINGS.md) · [Traceability matrix](TRACEABILITY_MATRIX.md)

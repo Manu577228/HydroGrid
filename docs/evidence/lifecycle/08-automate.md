@@ -16,7 +16,7 @@ flowchart LR
     Backend --> Logs
     Logs --> Fix["Reviewer diagnoses and fixes failed invariant"]
     Fix --> A
-    P["Approved tracked-branch push"] --> V["Vercel and Render provider builds"]
+    P["Approved provider branch update"] --> V["Vercel and Render provider builds"]
     V --> Smoke["Compare revisions and verify public paths"]
 ```
 
@@ -25,7 +25,7 @@ flowchart LR
 | GitHub push or pull request | On Ubuntu, Java 21 executes Maven verification. The release job installs locked Node packages and Chromium, builds Compose and probes the API with bounded retries. | Tests affect the run result. Failure prints service logs and retains browser traces, and cleanup always runs. [Workflow](../../../.github/workflows/ci.yml) · [Successful split CI](https://github.com/Manu577228/HydroGrid/actions/runs/45970866151) |
 | On-demand benchmark | A Node tool requests paired policies from the configured running app with fixed seeds and sizes, and checks trace consistency. | A failed run surfaces a non-success response or invariant failure. Successful runs export inputs and comparative results. [Runner](../../../deploy/benchmark.mjs) · [Raw study](../../data/dispatch-study.json) |
 | On-demand accessibility scan | Playwright and axe inspect specified themes, viewports and data-backed page states. | Browser exceptions, overflow or axe findings fail the runner. [Scanner](../../../e2e/accessibility.mjs) · [Verification scope](../../testing.md) |
-| Approved tracked-branch push | Vercel builds the frontend. Render builds the combined Java container. The apps use the existing managed database and environment configuration. | Provider status identifies the revision. Public health, browser, cookie and WSS checks verify the result. CI and provider builds run separately. [Delivery and rollback](../../deployment.md) |
+| Approved provider branch update | Vercel builds the frontend from `submission-final-audit`. Render builds the combined Java container from `main`. The apps use the existing managed database and environment configuration. | Provider status identifies the revision. Public health, browser, cookie and WSS checks verify the result. CI and provider builds run separately. [Delivery and rollback](../../deployment.md) |
 
 ## Runtime automation
 

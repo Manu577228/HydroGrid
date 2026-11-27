@@ -2,11 +2,11 @@
 
 ## Production infrastructure
 
-The production view distinguishes the frontend and backend builds from request flow. Vercel and Render watch the approved deployment branch. The Spring Boot image includes the frontend as a working fallback and owns all PostgreSQL access.
+The production view distinguishes the frontend and backend builds from request flow. Vercel tracks the approved submission branch. Render tracks `main` after the split application merge. The Spring Boot image includes the frontend as a working fallback and owns all PostgreSQL access.
 
 ```mermaid
 flowchart TB
-  Git["GitHub · submission-final-audit"]
+  Git["GitHub · submission-final-audit and main"]
   Actions["GitHub Actions · Maven and combined-release verification"]
   Client["Browser or installed PWA"]
   subgraph Vercel["Vercel · public frontend"]
@@ -24,8 +24,8 @@ flowchart TB
   Feeds["NDMA SACHET and scoped IUDX"]
   Weather["Open-Meteo and dated OSM data"]
   Git -.-> Actions
-  Git -.-> Vite
-  Git -.-> Jar
+  Git -.->|"submission-final-audit"| Vite
+  Git -.->|"main"| Jar
   Client <-->|"HTTPS assets"| Vite
   Client <-->|"Relative /api"| Rewrite
   Rewrite <-->|"HTTPS to backend"| Jar
@@ -42,14 +42,14 @@ The browser fetches the dated OSM extract from the deployed frontend assets. It 
 | --- | --- |
 | [Vercel production frontend](https://hydrogrid-response.vercel.app/) | Deployment `dpl_r7TKbbHxwzL4M2YNC1sDPQHyXAW8` built integration revision `5d08129b5e08847322d509318c9fd637c7f0c883`. Hosted workflow and PWA tests verified this build. |
 | [Vercel proxied health](https://hydrogrid-response.vercel.app/api/health) | API rewrite returned `UP` through Render and Neon. |
-| [Render combined fallback](https://hydrogrid-demo-7v9f.onrender.com/) and [direct health](https://hydrogrid-demo-7v9f.onrender.com/api/health) | Integration deploy `dep-dc4kgl17lnhs738r3p1g` ran `5d08129`. Later docs-only revision `de1f0447718be73a71650f233a6430ff865339cb` was observed live as `dep-dc4kjarrjlhs73fuo0ng`; both health paths were still `UP`. |
+| [Render combined fallback](https://hydrogrid-demo-7v9f.onrender.com/) and [direct health](https://hydrogrid-demo-7v9f.onrender.com/api/health) | Integration deploy `dep-dc4kgl17lnhs738r3p1g` ran `5d08129`. Later docs-only revision `de1f0447718be73a71650f233a6430ff865339cb` was observed live as `dep-dc4kjarrjlhs73fuo0ng`; both health paths were still `UP`. The current main deploy `dep-dc4km5s9v7es73fbnuqg` serves merge `388edee` with the same tested application files. |
 | Direct production socket | Hosted tests negotiated STOMP through `wss://hydrogrid-demo-7v9f.onrender.com/ws` and observed the scoped incident update. |
 
-The deployment IDs and provider observations are dated November 27, 2026 IST. Documentation commits can advance the deployment branch and Render build metadata without altering the app tree in the verified Vercel build. CI passed on the docs-only revision in both the push and pull-request paths. [Split rollout evidence](../deployment.md#verified-split-release) · [Application integration revision](https://github.com/Manu577228/HydroGrid/commit/5d08129b5e08847322d509318c9fd637c7f0c883) · [Docs-only revision](https://github.com/Manu577228/HydroGrid/commit/de1f0447718be73a71650f233a6430ff865339cb) · [Push CI](https://github.com/Manu577228/HydroGrid/actions/runs/45971879455) · [Pull-request CI](https://github.com/Manu577228/HydroGrid/actions/runs/45972012099)
+The deployment IDs and provider observations are dated November 27, 2026 IST. Provider branches can differ while both hosted surfaces use the same application files. Documentation updates advance the submission branch without changing the app tree. CI passed on the docs-only revision in both the push and pull-request paths. [Split rollout evidence](../deployment.md#verified-split-release) · [Application integration revision](https://github.com/Manu577228/HydroGrid/commit/5d08129b5e08847322d509318c9fd637c7f0c883) · [Docs-only revision](https://github.com/Manu577228/HydroGrid/commit/de1f0447718be73a71650f233a6430ff865339cb) · [Push CI](https://github.com/Manu577228/HydroGrid/actions/runs/45971879455) · [Pull-request CI](https://github.com/Manu577228/HydroGrid/actions/runs/45972012099)
 
 ## CI and release workflow
 
-The pipeline separates automatic verification, provider builds and human approval. GitHub Actions runs on push and pull request. The platform providers also watch the release branch for pushes, so approval is required before updating that branch. The push-triggered build can start while its CI run is in progress.
+The pipeline separates automatic verification, provider builds and human approval. GitHub Actions runs on push and pull request. Each provider watches its configured branch. Publication approval applies to the branch being updated. The push-triggered build can start while its CI run is in progress.
 
 ```mermaid
 flowchart TB
@@ -65,7 +65,7 @@ flowchart TB
   Playwright --> Review
   CI -->|"Failure"| Diagnose["Inspect job, service logs and retained failing traces"]
   Diagnose --> Develop
-  Review -->|"Approval"| Ship["Approved update to deployment branch"]
+  Review -->|"Approval"| Ship["Approved updates to configured release branches"]
   Ship --> Vercel["Automatic Vercel build"]
   Ship --> Render["Automatic Render image · Flyway and seed"]
   Vercel --> Smoke["Verify public commit, health, cookies and hosted workflows"]

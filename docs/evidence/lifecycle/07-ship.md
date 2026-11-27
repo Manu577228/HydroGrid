@@ -1,14 +1,14 @@
 # Ship
 
-**Status** · The combined Render fallback and the dedicated Vercel rollout are live and verified at the deployment record’s revisions. This documentation update has a separate publication gate.
+**Status** · The combined Render fallback and the dedicated Vercel rollout are live and verified at the deployment record’s revisions. The participant authorized publication of this documentation to the submission branch.
 
-The participant chose Neon PostgreSQL and approved successive releases, including the dedicated frontend. Codex prepared Git changes, checked provider revision status, ran deployment verification and recorded recovery scope. The original combined build was reviewed through PRs #1 and #2. The Vercel and Render services now follow the approved `submission-final-audit` branch. [Release PR](https://github.com/Manu577228/HydroGrid/pull/1) · [Keyboard correction PR](https://github.com/Manu577228/HydroGrid/pull/2) · [Release record](../../deployment.md)
+The participant chose Neon PostgreSQL and approved successive releases, including the dedicated frontend. Codex prepared Git changes, checked provider revision status, ran deployment verification and recorded recovery scope. The original combined build was reviewed through PRs #1 and #2. Vercel follows `submission-final-audit`. The Render service now follows `main`, where PR #3 merged the same tested application files. [Release PR](https://github.com/Manu577228/HydroGrid/pull/1) · [Keyboard correction PR](https://github.com/Manu577228/HydroGrid/pull/2) · [Release record](../../deployment.md)
 
 ```mermaid
 sequenceDiagram
     actor P as Participant
     participant B as Browser
-    participant Git as GitHub branch
+    participant Git as GitHub release branches
     participant C as GitHub Actions
     participant V as Vercel frontend
     participant R as Render application

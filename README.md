@@ -4,7 +4,7 @@
 
 **Every SOS Counts.** Practice the path from a citizen’s offline SOS to triage, dispatch, responder updates, and shelter admission. Then replay the same flood scenario under two dispatch policies and inspect the trade-offs.
 
-[![HydroGrid checks on the deployment branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=submission-final-audit)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)
+[![HydroGrid checks on the submission branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=submission-final-audit)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)
 
 [Live Vercel app](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Backend health](https://hydrogrid-demo-7v9f.onrender.com/api/health) · [Judge walkthrough](docs/demo.md)
 
@@ -145,8 +145,8 @@ flowchart TB
     Core <-->|"JDBC · transactions and spatial queries"| Sql["Neon · PostgreSQL and PostGIS"]
     Web -.->|"Modeled weather"| Weather["Open-Meteo"]
     Core -.->|"Official notices and gated road events"| Feeds["NDMA SACHET · IUDX"]
-    Git["Approved GitHub branch"] -->|"Builds frontend"| Vercel
-    Git -->|"Builds combined image"| Render
+    Git["GitHub release branches"] -->|"Vercel production branch"| Vercel
+    Git -->|"Render tracks main"| Render
     Git -->|"Runs checks"| CI["GitHub Actions"]
 ```
 

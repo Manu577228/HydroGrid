@@ -114,6 +114,7 @@ function WorkspaceSwitch() {
 function AccountMenu({ exercise }: { exercise: boolean }) {
   const account = useAccount()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [notice, setNotice] = useState('')
   const signedIn = account.status === 'signedIn'
   return <details className="platform-menu platform-account"
@@ -130,7 +131,9 @@ function AccountMenu({ exercise }: { exercise: boolean }) {
         <button className="platform-menu-item" type="button" onClick={(event) => {
           closeFlyout(event)
           setNotice('')
-          void account.signOut().then(() => navigate('/')).catch(() => setNotice('Sign-out failed. Please try again.'))
+          void account.signOut().then(() => {
+            if (pathname !== '/profile') navigate('/')
+          }).catch(() => setNotice('Sign-out failed. Please try again.'))
         }}><LogOut size={16} /> Sign out</button>
       </> : <>
         <Link className="platform-menu-item" to="/login" onClick={closeFlyout}><UserRound size={16} /> Sign in</Link>

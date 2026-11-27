@@ -11,7 +11,7 @@ The [Render API and combined fallback](https://hydrogrid-demo-7v9f.onrender.com/
 | [Render backend health](https://hydrogrid-demo-7v9f.onrender.com/api/health) | Direct readiness and a database-backed graph check. |
 | [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) | Combined app with a local same-origin API and WebSocket endpoint. |
 
-The existing Vercel project is connected to GitHub with root directory `frontend`, Vite, and production branch `submission-final-audit`. Vercel automatically builds the frontend on a push to that branch. Render keeps the same service and Neon database and follows the same branch. The GitHub default branch still serves its separate review history.
+The existing Vercel project is connected to GitHub with root directory `frontend`, Vite, and production branch `submission-final-audit`. Vercel automatically builds the frontend on a push to that branch. Render keeps the same service and Neon database and follows `main` after the split application was merged through PR #3. The final submission documentation is published on `submission-final-audit`. [Split rollout PR](https://github.com/Manu577228/HydroGrid/pull/3)
 
 [vercel.json](../frontend/vercel.json) forwards `/api/*` to Render and sends no-store directives on API responses. Browser API calls stay same-origin, including account mutations. The refresh cookie is host-scoped with `HttpOnly`, `Secure`, `SameSite=Strict` and `Path=/api/account`. A direct cross-site browser mutation is rejected. The browser opens STOMP over `wss://hydrogrid-demo-7v9f.onrender.com/ws` using the Vercel production build variable `VITE_HYDROGRID_WS_URL`. Render configures `HYDROGRID_FRONTEND_ORIGIN=https://hydrogrid-response.vercel.app`, the exact allowed Vercel origin. STOMP still authorizes the owned exercise topic with its scoped token.
 
@@ -24,6 +24,10 @@ On November 27, 2026 IST, Vercel production deployment `dpl_r7TKbbHxwzL4M2YNC1sD
 Playwright on Vercel verified first-party account signup, secure cookie attributes, profile restoration and logout. Direct STOMP negotiated `CONNECTED` with Render and delivered the workspace updates. The test suite covered dashboard data and chart drill-down, routes, offline SOS and responder sync, dispatch, shelter admission, simulation, mobile, and keyboard navigation. Three additional checks passed on the Render fallback. [Test results and reproduction](testing.md)
 
 The manifest and service worker loaded from Vercel and 40 served JavaScript chunks were scanned for credential markers, database URLs and private keys, with no matches. The proxied first-party refresh reached Render, direct cross-site refresh returned 403, and unauthenticated profile access returned 401. Render's own first-party refresh remained available.
+
+## Current Render fallback
+
+Render reports `dep-dc4km5s9v7es73fbnuqg` live for merge commit `388edee75d37a16584f2f1cfc718cfc5baf2970f` on `main`. The application files match the tested split-release tree, and both direct and proxied health returned `UP` again. [Main merge](https://github.com/Manu577228/HydroGrid/commit/388edee75d37a16584f2f1cfc718cfc5baf2970f) · [Vercel health](https://hydrogrid-response.vercel.app/api/health) · [Render health](https://hydrogrid-demo-7v9f.onrender.com/api/health)
 
 ## Prior combined release
 

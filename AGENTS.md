@@ -25,7 +25,7 @@ Use a different Compose project and `HYDROGRID_PORT` when another app instance i
 
 ## Engineering boundaries
 
-- Keep the frontend and API on the same origin. Preserve existing `/api`, `/ws` and hash-based page contracts. Prefer the existing types, query utilities, transactions and routing helpers when extending flows.
+- Keep browser REST on the same origin. Vercel rewrites `/api` to Render and uses the exact configured Render WSS endpoint. The combined deployment serves `/api` and `/ws` directly. Preserve hash-based routes. Prefer the existing types, query utilities, transactions and routing helpers when extending flows.
 - Enforce role and workspace scope in the backend before reading, writing, or publishing. Anonymous exercise, citizen identity, private field access, and agency operations have distinct credentials and data. Keep provider keys, account secrets, private GPS, and operator references out of Git, logs, screenshots and public fixtures.
 - Give offline writes stable client operation IDs through retries and reload. Keep pending work until a receipt confirms success. Preserve historical outbox rows on workspace changes. Treat IndexedDB and the service worker as device-local storage.
 - Apply dispatch, mission and shelter invariants under transaction and affected-row locks. Publish scoped events after commit. Preserve released Flyway files and add a new version for schema changes.

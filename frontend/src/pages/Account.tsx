@@ -86,7 +86,6 @@ export function RegisterPage() { return <AccountForm key="register" registering 
 function ProfileForm() {
   const account = useAccount()
   const profile = account.profile!
-  const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [issue, setIssue] = useState<unknown>(null)
   const [saved, setSaved] = useState(false)
@@ -117,7 +116,6 @@ function ProfileForm() {
     setIssue(null)
     try {
       await account.signOut()
-      navigate('/', { replace: true })
     } catch (error) {
       setIssue(error)
     } finally {

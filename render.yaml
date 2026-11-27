@@ -12,6 +12,8 @@ services:
         value: "8080"
       - key: HYDROGRID_DEMO_ENABLED
         value: "true"
+      - key: HYDROGRID_FRONTEND_ORIGIN
+        value: https://hydrogrid-response.vercel.app
       - key: HYDROGRID_JWT_SECRET
         generateValue: true
       - key: SPRING_DATASOURCE_URL

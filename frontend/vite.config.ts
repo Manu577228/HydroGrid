@@ -31,6 +31,6 @@ export default defineConfig({
       },
     }),
   ],
-  server: { host: true, proxy: { '/api': apiTarget, '/ws': { target: apiTarget, ws: true } } },
-  preview: { host: true, proxy: { '/api': apiTarget, '/ws': { target: apiTarget, ws: true } } },
+  server: { host: '127.0.0.1', proxy: { '/api': apiTarget, '/ws': { target: apiTarget, ws: true } } },
+  preview: { host: '127.0.0.1', proxy: { '/api': apiTarget, '/ws': { target: apiTarget, ws: true } } },
 })

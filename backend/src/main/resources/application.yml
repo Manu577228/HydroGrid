@@ -27,6 +27,7 @@ spring:
     validate-migration-naming: true
 hydrogrid:
   demo-enabled: ${HYDROGRID_DEMO_ENABLED:true}
+  frontend-origin: ${HYDROGRID_FRONTEND_ORIGIN:}
   jwt-secret: ${HYDROGRID_JWT_SECRET:}
   allow-custom-reports: ${HYDROGRID_ALLOW_CUSTOM_REPORTS:false}
   field-access-code: ${HYDROGRID_FIELD_ACCESS_CODE:}

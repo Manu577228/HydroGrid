@@ -4,7 +4,18 @@ import { randomUUID } from 'node:crypto';
 test.use({ serviceWorkers: 'block' });
 
 test('the dashboard reacts to committed exercise events and supports chart and search drilldown', async ({ page, request, context }) => {
+  const deployedSocketUrl = process.env.HYDROGRID_TEST_WS_URL;
+  let socketConnected = false;
+  if (deployedSocketUrl) {
+    page.on('websocket', (socket) => {
+      if (socket.url() !== deployedSocketUrl) return;
+      socket.on('framereceived', ({ payload }) => {
+        if (String(payload).startsWith('CONNECTED')) socketConnected = true;
+      });
+    });
+  }
   await page.goto('/#/dashboard');
+  if (deployedSocketUrl) await expect.poll(() => socketConnected).toBe(true);
   const active = page.getByTestId('dashboard-active-incidents');
   await expect(active).toHaveText(/^\d+$/);
   const startingCount = Number(await active.textContent());

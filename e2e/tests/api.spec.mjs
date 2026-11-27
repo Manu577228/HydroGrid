@@ -102,8 +102,9 @@ test('STOMP delivers new incident events to the correct workspace', async ({ pag
   const citizen = await apiRole(request, session, 'CITIZEN');
   const coordinator = await apiRole(request, session, 'COORDINATOR');
   await page.goto('/');
-  const url = new URL('/ws', baseURL);
-  url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+  const url = new URL(process.env.HYDROGRID_TEST_WS_URL ?? '/ws', baseURL);
+  if (url.protocol === 'https:') url.protocol = 'wss:';
+  if (url.protocol === 'http:') url.protocol = 'ws:';
 
   await page.evaluate(({ url, token, session }) => {
     window.hydroGridStompTest = { subscribed: false, events: [], error: '' };
@@ -140,11 +141,12 @@ test('STOMP delivers new incident events to the correct workspace', async ({ pag
   }, { intervals: [300, 600, 1000] }).toBe(true);
 });
 
-test('dispatch and mission completion update an incident in one browser workspace', async ({ request }) => {
+test('dispatch, mission completion, and shelter admission stay in one exercise workspace', async ({ request }) => {
   const session = randomUUID();
   const citizen = await apiRole(request, session, 'CITIZEN');
   const coordinator = await apiRole(request, session, 'COORDINATOR');
   const responder = await apiRole(request, session, 'RESPONDER');
+  const shelterOperator = await apiRole(request, session, 'SHELTER');
   const create = await citizen.post('/api/incidents', sampleIncident());
   expect(create.ok()).toBeTruthy();
   const { id } = await create.json();
@@ -163,6 +165,22 @@ test('dispatch and mission completion update an incident in one browser workspac
 
   const incidents = await (await coordinator.get('/api/incidents')).json();
   expect(incidents.find((row) => row.id === id)?.status).toBe('RESOLVED');
+
+  const shelterList = () => shelterOperator.get('/api/shelters');
+  const shelter = (await (await shelterList()).json()).find(({ available }) => available >= 2);
+  expect(shelter).toBeDefined();
+  const hold = await shelterOperator.post(`/api/shelters/${shelter.id}/reservations`, {
+    clientId: randomUUID(), incidentId: id, people: 2,
+  });
+  expect(hold.ok(), await hold.text()).toBeTruthy();
+  const reservation = await hold.json();
+  expect(reservation).toMatchObject({ incidentId: id, people: 2, status: 'RESERVED' });
+  const admission = await shelterOperator.post(`/api/shelters/${shelter.id}/reservations/${reservation.id}/admit`);
+  expect(admission.ok(), await admission.text()).toBeTruthy();
+  expect((await admission.json()).status).toBe('ADMITTED');
+  expect((await (await shelterList()).json()).find(({ id }) => id === shelter.id)).toMatchObject({
+    reserved: shelter.reserved, admitted: shelter.admitted + 2, available: shelter.available - 2,
+  });
 });
 
 test('a valid exercise ID cannot mint tokens without its ownership proof', async ({ request }) => {

@@ -6,16 +6,16 @@ HydroGrid pairs an authentic, isolated disaster response exercise with sourced p
 
 | Stage | Work and evidence |
 | --- | --- |
-| Discover | Read the supplied 2.0 brief against release `920716d`. Inventory the existing Flyway migrations, scope-specific JWTs, IndexedDB outbox, PostGIS routing, dispatch transactions, STOMP channel, and the traffic source. |
-| Define | Prioritize the dashboard, shell, secure citizen identity, command workflow, and mobile practice SOS. Keep the existing stack, demo access, and the public release available during development. |
-| Design | Model four access boundaries: public information, anonymous browser-owned exercise, citizen account, and the existing private field and agency workspaces. Use a restrained information-dense design, semantic theme tokens and visible data provenance. |
+| Understand | Read the supplied 2.0 brief against release `920716d`. Inventory the existing Flyway migrations, scope-specific JWTs, IndexedDB outbox, PostGIS routing, dispatch transactions, STOMP channel, and the traffic source. |
+| Plan | Prioritize the dashboard, shell, citizen identity, command workflow and mobile practice SOS. Keep the existing stack and public demo. Model boundaries for public information, anonymous browser-owned exercise, citizen accounts, and the separate private field and agency workspaces. |
 | Build | Split account auth, dashboard aggregation and navigation into independent workstreams. Integrate each through the existing React Router and same-origin Spring API. |
-| Test | Compare the untouched baseline with the new Compose build. Use PostGIS integration tests for atomic state changes and Playwright for browser workflows, IndexedDB replay and real STOMP updates. |
+| Test | Compare the untouched baseline with the new Compose build. Exercise atomic state changes in PostGIS, browser workflows in Playwright, and deterministic comparisons under the same seed. [Benchmark methodology](benchmarks.md) |
 | Review | Check session identifier ownership, token boundaries, role scopes, stale views, visual overflow, and accessibility in both themes. Review the keyboard path and source labels. |
-| Release | Commit on `hydrogrid-2-final`, run GitHub Actions on a pull request, then deploy the reviewed merge through the existing Render and Neon setup. |
-| Evaluate | Use the same seeded scenario for both dispatch policies. Record actual timing and browser verification from the release build. [Benchmark methodology](benchmarks.md) |
+| Document | Capture browser and timing measurements, previous workspace behavior, API changes and remaining operational constraints in these release notes and the repository documentation. |
+| Ship | Commit on `hydrogrid-2-final` and deploy the reviewed merge through the existing Render and Neon setup after authorization. |
+| Automate | Verify the pull request and released commit through GitHub Actions. Reuse Compose, bounded readiness checks and the deterministic benchmark runner. |
 
-The release brief asked for a map-first command center, honest metrics sourced from application records, and a complete working P0 before breadth. Delegated work was split by component and API ownership. No subagent model or reasoning overrides were supplied in this pass. The earlier run's recorded model and reasoning settings are preserved in [Judging evidence](judging.md#model-and-reasoning-effort-discipline--20). The app uses deterministic code for triage, routing, and dispatch.
+The release brief asked for a map-first command center, metrics sourced from application records, and complete core flows before extensions. Delegated work was split by component and API ownership. The [model decision log](evidence/MODEL_DECISION_LOG.md) records root and inherited settings. The app uses deterministic code for triage, routing, and dispatch.
 
 ## Changes by area
 

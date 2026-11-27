@@ -4,9 +4,9 @@
 
 **Every SOS Counts.** Practice the path from a citizen’s offline SOS to triage, dispatch, responder updates, and shelter admission. Then replay the same flood scenario under two dispatch policies and inspect the trade-offs.
 
-[![HydroGrid checks on main](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Amain)
+[![HydroGrid checks on the deployment branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=submission-final-audit)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)
 
-[Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [90-second quick start](#experience-hydrogrid-in-90-seconds) · [Codex Evidence Pack](docs/evidence/CODEX_EVIDENCE_PACK.md) · [Architecture](docs/engineering.md) · [Benchmark results](docs/benchmarks.md)
+[Vercel frontend](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [90-second quick start](#experience-hydrogrid-in-90-seconds) · [Codex Evidence Pack](docs/evidence/CODEX_EVIDENCE_PACK.md) · [Architecture](docs/engineering.md) · [Benchmark results](docs/benchmarks.md)
 
 HydroGrid is an accountable disaster-response prototype for citizens, coordinators, responders, and shelter operators. A practice report survives interrupted connectivity. A coordinator can inspect its priority, compare equipped units and open routes, then approve a dispatch. Responders and shelter operators record separate milestones, which the dashboard and audit history reflect after commit. **Rescue operations in the exercise are synthetic.** Live Bengaluru shows independently sourced geographic and environmental information. For an emergency in India, use the official 112 service. [Emergency Response Support System](https://112.gov.in/)
 
@@ -14,7 +14,7 @@ HydroGrid is an accountable disaster-response prototype for citizens, coordinato
 
 | Time after load | Try this | Look for |
 | --- | --- | --- |
-| 0:00–0:20 | Open the [live demo](https://hydrogrid-demo-7v9f.onrender.com/) and choose **Start interactive demo**. Open **Citizen SOS**, select a map location or landmark, and send a fictional report. | The isolated practice workspace opens without registration. The SOS gets a delivery receipt. |
+| 0:00–0:20 | Open the [live demo](https://hydrogrid-response.vercel.app/) and choose **Start interactive demo**. Open **Citizen SOS**, select a map location or landmark, and send a fictional report. | The isolated practice workspace opens without registration. The SOS gets a delivery receipt. |
 | 0:20–0:55 | Open **Command center**, select the new report, and inspect its priority, unit recommendation, and route. Choose a compatible report or seeded incident if a recommendation is unavailable. Review and confirm dispatch, then open **Responder console**. | Coordinator approval creates an assignment. The responder can mark departure, arrival, and completion. |
 | 0:55–1:30 | Open **Shelters** to see capacity, **Analytics & audit** to see committed events, and **Simulation lab** to compare the included dispatch policies. | Reservations and admissions have separate counts. Both policies replay the same scenario inputs. |
 
@@ -73,7 +73,7 @@ A browser can use a manual practice location or, with permission, use GPS to sug
 | Geospatial view and field test | **Implemented and verified within a bounded area.** Exercise routing excludes intersecting closures. Live Bengaluru uses a separate OSM extract, modeled weather, and sourced bulletins. Opt-in device sharing uses private field access. [Live and field tests](e2e/tests/live.spec.mjs) |
 | Authentication and city operations | **Implemented and verified in isolated fixtures.** Citizen accounts, browser-owned demo roles, and separately configured agency roles. The authorized traffic feed provides sourced observations when available. [Security](docs/security.md) · [Scoped operations](docs/operations.md) |
 | Policy evaluation | **Experimental.** Fixed-seed paired replay with timing and coverage distributions. [Measured study](docs/benchmarks.md) |
-| Delivery | **Implemented and verified for the deployed revision.** Docker and Compose reproduce the service. GitHub Actions runs backend and release checks. Render serves the app with Neon PostgreSQL. [Deployment evidence](docs/deployment.md) |
+| Delivery | **Implemented and verified for the deployed revision.** Docker and Compose reproduce the service. GitHub Actions runs backend and release checks. Vercel serves the dedicated frontend. Render serves the API and the combined fallback with Neon PostgreSQL. [Deployment evidence](docs/deployment.md) |
 
 ## System architecture
 
@@ -92,7 +92,10 @@ flowchart LR
         Services["Transactions, triage, routing and replay"]
         API --> Auth --> Services
     end
-    React <-->|"HTTPS and WebSocket"| API
+    Vercel["Vercel SPA and same-origin API rewrite"]
+    React <-->|"HTTPS"| Vercel
+    Vercel <-->|"Proxied HTTPS API"| API
+    React <-->|"Direct WSS STOMP"| API
     Services <-->|"JDBC, Flyway and spatial queries"| PG["Neon PostgreSQL 16 and PostGIS"]
     React --> Weather["Open-Meteo"]
     API --> Feeds["NDMA SACHET and scoped IUDX"]
@@ -107,7 +110,7 @@ flowchart LR
 | Browser | React 19, TypeScript, Vite 7, Tailwind 4, Leaflet, Recharts, TanStack Query | Typed and responsive operational views |
 | Offline and updates | Dexie, IndexedDB, Workbox, STOMP | Durable pending actions, cached shell, and event-driven refresh |
 | Service and data | Java 21, Spring Boot, Spring Security, Spring Data JPA and JDBC, PostgreSQL 16, PostGIS, Flyway | Authorization, transactions, geographic queries, and repeatable migrations |
-| Validation and release | Maven, Testcontainers, Playwright, Docker Compose, GitHub Actions, Render, Neon | Reproducible tests and single-image delivery |
+| Validation and release | Maven, Testcontainers, Playwright, Docker Compose, GitHub Actions, Vercel, Render, Neon | Reproducible tests and single-image delivery |
 
 [Architecture, sequence diagrams, dependency versions, and trade-offs](docs/engineering.md)
 
@@ -128,7 +131,7 @@ HydroGrid reached 43 more critical reports and 11 fewer reports overall. The mea
 
 Citizen accounts, exercise roles, and private field and agency access use separate authorization. The exercise has a browser-held ownership proof. Real GPS sharing is opt-in and restricted to the private field test. Local security and browser tests cover session revocation, isolation, cross-workspace events, offline replay, and competing writes. [Security review](docs/security.md) · [Independent findings](docs/evidence/REVIEW_FINDINGS.md)
 
-Current local verification passed **24 backend tests** and **17 browser/API tests**. The public release passed **14 hosted tests**. Three account or private fixture cases run locally. Responsive and automated accessibility results, commands, and scope are in the test report. [Test report](docs/testing.md) · [Deployed main CI run](https://github.com/Manu577228/HydroGrid/actions/runs/45938609328)
+The split release passed **25 backend tests**, **17 local browser/API checks**, and **15 hosted Vercel Playwright checks**. Two private write workflows passed against isolated fixtures. The Vercel frontend also passed **120** automated accessibility and layout scans. [Verification details](docs/testing.md) · [GitHub Actions on the deployment branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)
 
 ## Run the demo
 
@@ -148,7 +151,7 @@ Open [localhost:8080](http://127.0.0.1:8080/). Use another loopback port with `H
 | Account and field | Scoped account, field, and operations endpoints with separate credentials |
 | Realtime | `/ws` with an authorized STOMP connection and subscription |
 
-[API reference and synthetic examples](docs/api.md) · [Docker, Render, Neon, and rollback](docs/deployment.md) · [2.0 release notes](docs/release-2.0.md)
+[API reference and synthetic examples](docs/api.md) · [Vercel, Render, Neon, and rollback](docs/deployment.md) · [Direct backend health](https://hydrogrid-demo-7v9f.onrender.com/api/health) · [2.0 release notes](docs/release-2.0.md)
 
 ## Built with Codex — Competition Evidence
 
@@ -182,4 +185,4 @@ Open [localhost:8080](http://127.0.0.1:8080/). Use another loopback port with `H
 
 OpenStreetMap contributors supply the bounded street extract under ODbL. Open-Meteo, NDMA SACHET, and Bengaluru Traffic Police via IUDX are separately attributed. The landing artwork is an illustration. The repository currently has no project-wide license file. Its public visibility gives judges source access. [Attribution and license status](docs/attribution.md)
 
-[Live HydroGrid](https://hydrogrid-demo-7v9f.onrender.com/) · [Public repository](https://github.com/Manu577228/HydroGrid) · [Codex Evidence Pack](docs/evidence/CODEX_EVIDENCE_PACK.md) · [Final checklist](docs/submission-checklist.md)
+[Live HydroGrid](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Public repository](https://github.com/Manu577228/HydroGrid) · [Codex Evidence Pack](docs/evidence/CODEX_EVIDENCE_PACK.md) · [Final checklist](docs/submission-checklist.md)

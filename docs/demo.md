@@ -1,6 +1,6 @@
 # HydroGrid judge walkthrough
 
-Open the guest exercise in a fresh browser profile or private window while connected. Keep the same tab through dispatch, response and shelter admission so every page uses the same workspace. All incidents, units, exercise roads and shelter figures are fictional. A cold Render start can add about a minute before the walkthrough begins. [Hosted demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Local setup](setup.md) · [Product gallery](showcase.md)
+Open the guest exercise in a fresh browser profile or private window while connected. Keep the same tab through dispatch, response and shelter admission so every page uses the same workspace. All incidents, units, exercise roads and shelter figures are fictional. A cold Render start can add about a minute before the walkthrough begins. [Hosted demo](https://hydrogrid-response.vercel.app/) · [Local setup](setup.md) · [Product gallery](showcase.md)
 
 ## Experience HydroGrid in 90 Seconds
 
@@ -23,6 +23,6 @@ The 90-second path assumes a warm app and a connected browser with JavaScript an
 
 ## Inspect the sourced Bengaluru view
 
-Choose two landmarks in **Live Bengaluru**. Inspect the OpenStreetMap snapshot date, Open-Meteo model timestamp and original Karnataka bulletin issue dates before interpreting them. The bounded street preview excludes closure and flood status. The public competition exercise requires no private field code, real GPS, or agency operator login. HydroGrid is a prototype. In India, use the official 112 service for emergencies. [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Data sources and terms](attribution.md) · [Official 112 service](https://www.mha.gov.in/emergency-response-support-system-erss)
+Choose two landmarks in **Live Bengaluru**. Inspect the OpenStreetMap snapshot date, Open-Meteo model timestamp and original Karnataka bulletin issue dates before interpreting them. The bounded street preview excludes closure and flood status. The public competition exercise requires no private field code, real GPS, or agency operator login. HydroGrid is a prototype. In India, use the official 112 service for emergencies. [Live Bengaluru](https://hydrogrid-response.vercel.app/#/live) · [Data sources and terms](attribution.md) · [Official 112 service](https://www.mha.gov.in/emergency-response-support-system-erss)
 
 [Two-minute narration and recording storyboard](demo-script.md) · [Competition evidence](judging.md)

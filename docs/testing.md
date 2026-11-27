@@ -1,6 +1,6 @@
 # Testing and verification
 
-Release verification covers the deployed main revision `940edb064d90053414370addb871f6b33e997e93` and the isolated `submission-final-audit` candidate prepared on Nov 27, 2026 IST. The two builds have separate evidence and approval states.
+Release verification covers the deployed main revision `940edb064d90053414370addb871f6b33e997e93` and the initial isolated `submission-final-audit` candidate prepared on Nov 27, 2026 IST. The two builds have separate evidence and approval states.
 
 | Check | Candidate or deployed revision | Outcome |
 | --- | --- | --- |
@@ -11,9 +11,33 @@ Release verification covers the deployed main revision `940edb064d90053414370add
 | Responsive and accessibility | Local candidate | 120 Chromium and axe scans. Zero violations, unexpected page errors, or horizontal overflow in the tested states. |
 | Hosted browser and API | Deployed main | 14 passed, 3 local fixture cases skipped. The run covered public mobile navigation, offline replay, scoped WebSocket delivery, dashboard updates and other synthetic workflow checks. |
 | GitHub Actions | Deployed main | Backend and release jobs passed on the same commit that Render serves. |
-| CI and hosted verification | Submission candidate | Local verification recorded above. GitHub Actions and the Render release gate require authorized publication. |
+| CI and hosted verification | Initial submission candidate | Superseded by the authorized split rollout below. |
 
 [Deployed main CI run](https://github.com/Manu577228/HydroGrid/actions/runs/45938609328) · [Deployment and recovery evidence](deployment.md) · [Reviewed findings](evidence/REVIEW_FINDINGS.md)
+
+## Dedicated Vercel release verification
+
+| Check | Verified result |
+| --- | --- |
+| Maven and PostGIS | 25 passed, including the exact-origin and browser metadata regression. |
+| Isolated combined release | 17 Playwright checks passed, including the private GPS and operator writes. |
+| Public Vercel | 15 Playwright checks passed and two private write fixtures were skipped. The synthetic citizen account used a verified host-only Secure, HttpOnly, SameSite Strict cookie and signed out at test completion. |
+| Vercel page matrix | 120 checks across both themes and six viewport widths. No findings in the tested axe, overflow and browser-error states. |
+| Production live updates | The deployed JavaScript opened the Render WSS endpoint, negotiated STOMP and received the scoped incident update. The same-origin fallback also delivered a STOMP event. |
+| Render fallback | Three targeted mobile, STOMP and dispatch-confirmation Playwright checks passed. |
+| Deployment security and PWA | Both health URLs returned UP, the manifest and worker loaded, no credential markers appeared in 40 served JS chunks, and direct browser cross-site refresh returned 403. |
+| GitHub Actions | Both backend and release jobs passed. The backend job retried after a Maven Central HTTP 429 on the first attempt. |
+
+[Production frontend](https://hydrogrid-response.vercel.app/) · [Render API and fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Successful Actions run](https://github.com/Manu577228/HydroGrid/actions/runs/45970866151) · [Release details](deployment.md)
+
+Run the public browser suite from `e2e`. Set the hosted-account opt-in only for an authorized synthetic account smoke test. The private GPS and operator write tests use isolated local fixtures.
+
+```sh
+HYDROGRID_BASE_URL=https://hydrogrid-response.vercel.app \
+HYDROGRID_TEST_WS_URL=wss://hydrogrid-demo-7v9f.onrender.com/ws \
+HYDROGRID_TEST_HOSTED_ACCOUNT=1 npm test
+HYDROGRID_BASE_URL=https://hydrogrid-response.vercel.app npm run check:accessibility
+```
 
 ## Reproduce the core checks
 

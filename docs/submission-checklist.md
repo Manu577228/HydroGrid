@@ -11,7 +11,7 @@ The competition brief governs this checklist. Keep workshop details and particip
 | C · Product demonstration | Passed | Verified public release and complete synthetic walkthrough. [Deployment](deployment.md) · [Showcase](showcase.md) |
 | D · Evidence integrity | Passed for available records | All eight stages, primary records, and inherited model settings documented. [Codex Evidence Pack](evidence/CODEX_EVIDENCE_PACK.md) |
 | E · Reproducibility | Passed locally | Fresh isolated Compose, tested commands, accessibility and nine reproducible scenarios. [Setup](setup.md) · [Benchmarks](benchmarks.md) |
-| F · Submission | Blocked on publication and participant confirmation | Draft PR publication and merge require approval. Confirm the final public Evidence Pack URL, eligibility, and official entry form after review. |
+| F · Submission | Deployment and public branch evidence verified | Confirm the official form, eligibility, and the public Evidence Pack URL that will be submitted. |
 
 ## Package to review
 

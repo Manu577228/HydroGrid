@@ -9,6 +9,24 @@
   </tr>
 </table>
 
+## Product Demo & Video Showcase
+
+### 1. Arcade — Guided Product Walkthrough
+
+Explore HydroGrid's interface and discover how its disaster-response workflows fit together through a guided product demonstration.
+
+[**View the Arcade walkthrough**](https://app.arcade.software/share/videos/MP7xitoNReNRFvuzHRsM)
+
+### 2. YouTube — Project Presentation
+
+Discover the motivation behind HydroGrid, its core capabilities, and its development for the Build with Codex challenge by GeeksforGeeks.
+
+[![Watch the HydroGrid project presentation on YouTube](https://img.youtube.com/vi/IcKySsTgm60/hqdefault.jpg)](https://youtu.be/IcKySsTgm60?si=2pmQiSN6Ya03ew2l)
+
+[**Watch the project presentation on YouTube**](https://youtu.be/IcKySsTgm60?si=2pmQiSN6Ya03ew2l)
+
+---
+
 **Every SOS Counts.** Practice the path from a citizen’s offline SOS to triage, dispatch, responder updates, and shelter admission. Then replay the same flood scenario under two dispatch policies and inspect the trade-offs.
 
 [![HydroGrid checks on the submission branch](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml/badge.svg?branch=submission-final-audit)](https://github.com/Manu577228/HydroGrid/actions/workflows/ci.yml?query=branch%3Asubmission-final-audit)

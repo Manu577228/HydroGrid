@@ -39,6 +39,14 @@ HYDROGRID_TEST_HOSTED_ACCOUNT=1 npm test
 HYDROGRID_BASE_URL=https://hydrogrid-response.vercel.app npm run check:accessibility
 ```
 
+## Final submission sanity check
+
+On November 27, 2026 IST, the unchanged split application passed **25 Java tests** and **17 isolated Chromium browser checks**. The Vercel production build compiled locally, and all **nine paired benchmark runs** matched the recorded deterministic outputs. Both public health routes returned `UP`. The served manifest and worker loaded, direct cross-site refresh returned 403, and the scan found no credential markers in 40 served JavaScript chunks. [Split release proof](deployment.md) · [Recorded benchmark](benchmarks.md)
+
+The first public pass returned 13 successes, three scope skips, and one timeout waiting for an offline SOS delivery receipt. Parallel test runners also collided in their shared trace directory, so the first trace could not establish a root cause. After checking readiness and separating the output directories, the targeted offline SOS check passed **three of three** times. A warm public suite with one worker then passed **14 checks**, with three deliberate skips. Those skips cover the synthetic account-write case and the two private write fixtures, which have their own earlier hosted or isolated evidence. This run made no runtime changes.
+
+The previous split release remains the hosted evidence for secure citizen-account registration, cookie attributes, profile restoration and logout. The fresh Vercel suite rechecked direct STOMP, dashboards, route and simulation data, offline work, shelter admission, keyboard navigation and mobile. The latest pre-documentation push and PR verification both passed for the same application tree. [Push CI](https://github.com/Manu577228/HydroGrid/actions/runs/45971879455) · [PR CI](https://github.com/Manu577228/HydroGrid/actions/runs/45972012099)
+
 ## Reproduce the core checks
 
 Run these commands with Docker, Java 21, Maven 3.9, and Node 24 at the repository root. Start a local app as described in [setup](setup.md). Fixture-only tests expect the operator and field environment shown in the [CI workflow](../.github/workflows/ci.yml). Use isolated local values.

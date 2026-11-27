@@ -5,7 +5,7 @@
 Install Git and Docker with Compose v2. The Dockerfile builds React with Node 24 and packages the resulting static files in the Java 21 application. The Compose PostGIS image uses Linux amd64, including on Apple Silicon and other ARM hosts. Enable amd64 emulation when your Docker installation requires it.
 
 ```sh
-git clone https://github.com/Manu577228/HydroGrid.git
+git clone --branch submission-final-audit --single-branch https://github.com/Manu577228/HydroGrid.git
 cd HydroGrid
 docker compose up -d --build --wait
 curl --fail --silent --show-error --retry 25 --retry-delay 2 --retry-all-errors \

@@ -2,7 +2,7 @@
 
 HydroGrid lets a judge rehearse how a citizen report travels through a flood-response system with unreliable connectivity. A browser-owned workspace links a queued SOS, a confirmed dispatch, a responder journey and shelter admission to an audit trail. Its separate Bengaluru view displays sourced geographic and environmental data. All rescue outcomes in the exercise are simulated.
 
-[Public repository](https://github.com/Manu577228/HydroGrid) · [Live exercise](https://hydrogrid-demo-7v9f.onrender.com/) · [Judge walkthrough](../demo.md) · [Persistent Codex instructions](../../AGENTS.md) · [Capability matrix](CAPABILITY_MATRIX.md) · [Model decision log](MODEL_DECISION_LOG.md) · [Review findings](REVIEW_FINDINGS.md) · [Traceability matrix](TRACEABILITY_MATRIX.md)
+[Public repository](https://github.com/Manu577228/HydroGrid) · [Live Vercel exercise](https://hydrogrid-response.vercel.app/) · [Render fallback](https://hydrogrid-demo-7v9f.onrender.com/) · [Judge walkthrough](../demo.md) · [Persistent Codex instructions](../../AGENTS.md) · [Capability matrix](CAPABILITY_MATRIX.md) · [Model decision log](MODEL_DECISION_LOG.md) · [Review findings](REVIEW_FINDINGS.md) · [Traceability matrix](TRACEABILITY_MATRIX.md)
 
 ## Competition scope
 
@@ -10,13 +10,35 @@ The participant's *1-Month Build Challenge — Build with Codex* submission brie
 
 | Criterion | Points available | Audit entry point |
 | --- | ---: | --- |
-| Lifecycle Coverage and Depth | 30 | [Eight stages](#understand) and [traceability](TRACEABILITY_MATRIX.md) |
+| Lifecycle Coverage and Depth | 30 | [Eight stages](#lifecycle-records) and [traceability](TRACEABILITY_MATRIX.md) |
 | Codex Capability Use and Fit | 25 | [Capability matrix](CAPABILITY_MATRIX.md) |
 | Model and Reasoning Discipline | 20 | [Decision log](MODEL_DECISION_LOG.md) |
-| Working Result and Engineering Craft | 15 | [Test](#test), [review](#review) and [live exercise](https://hydrogrid-demo-7v9f.onrender.com/) |
+| Working Result and Engineering Craft | 15 | [Test](lifecycle/04-test.md), [Review](lifecycle/05-review.md) and [live exercise](https://hydrogrid-response.vercel.app/) |
 | Problem Worth Solving and Originality | 10 | [Understand](#understand), [Plan](#plan) and [controlled comparisons](../benchmarks.md) |
 
 The supplied brief is the source of the stage names and rubric used here. Organizer eligibility and solo-participant status require the participant's attestation. Public source, history, tests and release remain directly inspectable.
+
+## Lifecycle records
+
+```mermaid
+flowchart LR
+    U["Understand"] --> P["Plan"] --> B["Build"] --> T["Test"]
+    T --> R["Review"] --> D["Document"] --> S["Ship"] --> A["Automate"]
+    A -->|Observed outcomes and failures inform the next scope| U
+```
+
+| Stage | Evidence to inspect |
+| --- | --- |
+| [Understand](lifecycle/01-understand.md) | Stakeholders, problem, sourced data and privacy boundaries, and acceptance criteria. |
+| [Plan](lifecycle/02-plan.md) | Decisions, alternatives documented in the original brief, architecture indexes and constraints. |
+| [Build](lifecycle/03-build.md) | Subsystem implementation paths and real Codex workstream separation. |
+| [Test](lifecycle/04-test.md) | Offline and concurrency sequences, requirement-to-test evidence and exact revision outcomes. |
+| [Review](lifecycle/05-review.md) | Discovery, corrections, scoped independent review and remaining risks. |
+| [Document](lifecycle/06-document.md) | Documentation map, real captures, and evidence verification. |
+| [Ship](lifecycle/07-ship.md) | Combined and split releases, exact providers, health and rollback verification. |
+| [Automate](lifecycle/08-automate.md) | CI, provider deployment, runtime retries, cleanup and reproducible on-demand tooling. |
+
+[Architecture diagram suite](../architecture/README.md) · [Operational workflow diagram suite](../workflows/README.md) · [Documentation index](../README.md)
 
 ## Development timeline
 
@@ -31,6 +53,8 @@ Dates and times use Bengaluru time (IST). The commit links preserve the original
 | 27 Nov, 02:01–02:36 | 2.0 brief, citizen auth, owner proof, dashboard and first reviewed merge | [2.0 PR](https://github.com/Manu577228/HydroGrid/pull/1) · [release notes](../release-2.0.md) |
 | 27 Nov, 09:42 | Keyboard regression correction merged after release verification | [Fix PR](https://github.com/Manu577228/HydroGrid/pull/2) · [deployed SHA](https://github.com/Manu577228/HydroGrid/commit/940edb064d90053414370addb871f6b33e997e93) · [release CI](https://github.com/Manu577228/HydroGrid/actions/runs/45938609328) |
 | 27 Nov, from 10:00 | Final competition audit and evidence consolidation | [P6](#recorded-prompt-excerpts) · [D6](MODEL_DECISION_LOG.md) · [findings](REVIEW_FINDINGS.md) |
+| 27 Nov, 14:35–14:43 | Deploy and document dedicated Vercel frontend, Render API/fallback and existing Neon | [Integration commit](https://github.com/Manu577228/HydroGrid/commit/5d08129b5e08847322d509318c9fd637c7f0c883) · [provider evidence](../deployment.md) · [split CI](https://github.com/Manu577228/HydroGrid/actions/runs/45970866151) |
+| 27 Nov, from 14:51 | Expand each lifecycle record and check architecture and workflow diagrams against existing code | [P7](#recorded-prompt-excerpts) · [D8](MODEL_DECISION_LOG.md) · [Stage records](#lifecycle-records) |
 
 ## Recorded prompt excerpts
 
@@ -44,6 +68,7 @@ These excerpts come from participant-supplied briefs or messages. IDs below refe
 | P4 · 2.0 brief, sections 9 and 25, 27 Nov | “Publish events only after successful database transactions.” “Scope events to authorized workspaces.” “Run baseline tests before changes.” |
 | P5 · 2.0 brief, section 28, 27 Nov | “You are NOT authorized to weaken security or workspace isolation.” “Work incrementally using focused Git commits.” |
 | P6 · Final competition brief, sections 28, 32 and 48, 27 Nov | “Use real session records and existing documentation.” “Perform a fresh review of the completed application.” “Do not push or merge without human approval.” |
+| P7 · Lifecycle and architecture brief, sections 1 and 2, 27 Nov | “Every architectural diagram must reflect the actual implemented system.” “Each stage must demonstrate actual engineering work rather than theoretical explanations.” |
 
 The participant also approved the earlier deployment and raised the data-quality requirement for current Bengaluru conditions. The [release notes](../release-2.0.md) and [operations guide](../operations.md) explain how those requests affected the implementation and deployment. The captured [ImageGen prompt](CAPABILITY_MATRIX.md#original-landing-artwork) is separate from the product prompts.
 
@@ -74,6 +99,8 @@ The participant also approved the earlier deployment and raised the data-quality
 - **Codex and configuration.** The root used `gpt-6.2-sol` at `ultra` to drive Maven, Playwright and Docker. A live PostGIS process checked locks and spatial behavior. Chromium reproduced offline queue recovery and WebSocket delivery. [D2/D4/D5](MODEL_DECISION_LOG.md)
 - **Result and human decision.** Release verification recorded 24 passing Maven tests, 17 local Playwright passes including three fixture-only cases, 14 hosted Playwright passes and 120 automated axe/layout scans with zero reported axe violations, horizontal overflows or page errors. The participant required baseline checks before changing 2.0 and preservation of the existing deployment. [Test source](../../backend/src/test/java/com/hydrogrid) · [Browser source](../../e2e/tests) · [Release verification](../release-2.0.md#verification)
 - **Verification, limits and lesson.** The [CI run](https://github.com/Manu577228/HydroGrid/actions/runs/45938609328) verifies the deployed source revision. A startup probe missed connection resets and a hosted transition revealed a keyboard timing issue. [Review](#review) links both corrections. Local fixtures and public smoke tests have separate permissions. The final audit adds a reproducible [accessibility command](../../e2e/accessibility.mjs) and a [nine-run study](../benchmarks.md) across three seeds and three workloads. It records critical coverage, overall service, p95 and assignment validity together.
+
+The split release added the exact-origin regression and recorded 25 passing Maven tests, 17 passing isolated browser/API tests, 15 passing hosted Vercel checks, two private hosted skips and three Render fallback checks. The hosted 120-scan accessibility matrix reported no findings in the sampled states. [Detailed results](lifecycle/04-test.md) · [Split CI](https://github.com/Manu577228/HydroGrid/actions/runs/45970866151)
 
 ## Review
 

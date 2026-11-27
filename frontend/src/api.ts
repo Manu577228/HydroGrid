@@ -138,11 +138,12 @@ export function refreshExercise() {
 export function liveUpdates(onChange: (connected: boolean) => void) {
   if (isSimulatedOffline() || !navigator.onLine) return () => {}
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const brokerURL = import.meta.env.VITE_HYDROGRID_WS_URL || protocol + '//' + location.host + '/ws'
   const seen = new Set<string>()
   let renew: number | undefined
   let stopped = false
   const connection = new Client({
-    brokerURL: protocol + '//' + location.host + '/ws',
+    brokerURL,
     reconnectDelay: 1_000 + Math.floor(Math.random() * 900),
     reconnectTimeMode: ReconnectionTimeMode.EXPONENTIAL,
     maxReconnectDelay: 25_000 + Math.floor(Math.random() * 5_000),

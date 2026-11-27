@@ -1,5 +1,6 @@
 package com.hydrogrid.api;
 
+import com.hydrogrid.config.FrontendOrigin;
 import com.hydrogrid.config.SecurityConfiguration;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -58,14 +59,16 @@ class AccountController {
     private final AccountStore accounts;
     private final PasswordEncoder passwords;
     private final JwtEncoder encoder;
+    private final FrontendOrigin frontendOrigin;
     private final String missingAccountHash;
     private final Semaphore passwordWorkers = new Semaphore(2);
     private final Map<String, AttemptWindow> attempts = new HashMap<>();
 
-    AccountController(AccountStore accounts, PasswordEncoder passwords, JwtEncoder encoder) {
+    AccountController(AccountStore accounts, PasswordEncoder passwords, JwtEncoder encoder, FrontendOrigin frontendOrigin) {
         this.accounts = accounts;
         this.passwords = passwords;
         this.encoder = encoder;
+        this.frontendOrigin = frontendOrigin;
         this.missingAccountHash = passwords.encode(newRefreshToken());
     }
 
@@ -191,7 +194,7 @@ class AccountController {
         if (validRefreshToken(token)) accounts.revoke(digest(token));
     }
 
-    private static void requireSameOrigin(HttpServletRequest request) {
+    private void requireSameOrigin(HttpServletRequest request) {
         var forbidden = new ResponseStatusException(HttpStatus.FORBIDDEN, "A secure same-origin request is required");
         String host = request.getServerName();
         if (!request.isSecure() && !LOCAL_HOSTS.contains(host.toLowerCase(Locale.ROOT))) throw forbidden;
@@ -199,6 +202,8 @@ class AccountController {
         if (fetchSite != null && !"same-origin".equals(fetchSite)) throw forbidden;
         String rawOrigin = request.getHeader(HttpHeaders.ORIGIN);
         if (rawOrigin == null) throw forbidden;
+        // An HTTPS frontend rewrite may preserve the browser origin and replace the request host.
+        if (request.isSecure() && "same-origin".equals(fetchSite) && frontendOrigin.matches(rawOrigin)) return;
         try {
             var origin = URI.create(rawOrigin);
             int port = origin.getPort() >= 0 ? origin.getPort() : request.isSecure() ? 443 : 80;

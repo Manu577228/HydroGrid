@@ -29,15 +29,17 @@ import java.util.concurrent.ConcurrentHashMap;
 class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
     static final String UPDATE_TOPIC = "/topic/updates/";
     private final JwtDecoder tokens;
+    private final FrontendOrigin frontendOrigin;
     private final ConcurrentHashMap<String, Instant> leases = new ConcurrentHashMap<>();
 
-    WebSocketConfiguration(JwtDecoder tokens) {
+    WebSocketConfiguration(JwtDecoder tokens, FrontendOrigin frontendOrigin) {
         this.tokens = tokens;
+        this.frontendOrigin = frontendOrigin;
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws");
+        registry.addEndpoint("/ws").setAllowedOrigins(frontendOrigin.allowedOrigins());
     }
 
     @Override

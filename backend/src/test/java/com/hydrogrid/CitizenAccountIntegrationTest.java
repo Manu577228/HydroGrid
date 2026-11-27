@@ -22,7 +22,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers(disabledWithoutDocker = true)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "hydrogrid.frontend-origin=https://hydrogrid-response.vercel.app")
 class CitizenAccountIntegrationTest {
     private static final String EMAIL = "qa-citizen@example.test";
     private static final String PASSWORD = "local-citizen-QA-password";
@@ -45,6 +46,22 @@ class CitizenAccountIntegrationTest {
     ObjectMapper mapper;
     @Autowired
     org.springframework.jdbc.core.simple.JdbcClient database;
+
+    @Test
+    void frontendRewriteRequiresExactOriginAndSameOriginBrowserMetadata() throws Exception {
+        try (var client = HttpClient.newHttpClient()) {
+            assertThat(proxiedRefresh(client, "https://hydrogrid-response.vercel.app", "same-origin", "https"))
+                    .isEqualTo(204);
+            assertThat(proxiedRefresh(client, "https://hydrogrid-response.vercel.app", "cross-site", "https"))
+                    .isEqualTo(403);
+            assertThat(proxiedRefresh(client, "https://hydrogrid-response.vercel.app", null, "https"))
+                    .isEqualTo(403);
+            assertThat(proxiedRefresh(client, "https://other.vercel.app", "same-origin", "https"))
+                    .isEqualTo(403);
+            assertThat(proxiedRefresh(client, "https://hydrogrid-response.vercel.app", "same-origin", "http"))
+                    .isEqualTo(403);
+        }
+    }
 
     @Test
     void accountSecurityAndLifecycle() throws Exception {
@@ -115,6 +132,17 @@ class CitizenAccountIntegrationTest {
 
     private JsonNode profile(HttpResponse<String> response) throws Exception {
         return mapper.readTree(response.body()).path("profile");
+    }
+
+    private int proxiedRefresh(HttpClient client, String browserOrigin, String fetchSite, String proto) throws Exception {
+        var request = HttpRequest.newBuilder(URI.create(origin() + "/api/account/refresh"))
+                .header("Origin", browserOrigin)
+                .header("X-Forwarded-Host", "hydrogrid-demo-7v9f.onrender.com")
+                .header("X-Forwarded-Proto", proto)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString("{}"));
+        if (fetchSite != null) request.header("Sec-Fetch-Site", fetchSite);
+        return client.send(request.build(), HttpResponse.BodyHandlers.discarding()).statusCode();
     }
 
     private static String refreshCookie(HttpResponse<String> response) {

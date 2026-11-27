@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 
+test.use({ serviceWorkers: 'block' });
+
 test('the dashboard reacts to committed exercise events and supports chart and search drilldown', async ({ page, request, context }) => {
   await page.goto('/#/dashboard');
   const active = page.getByTestId('dashboard-active-incidents');
@@ -41,9 +43,19 @@ test('the dashboard reacts to committed exercise events and supports chart and s
   }
   await expect(controls.getByText('Live workspace', { exact: true })).toBeVisible();
 
-  await page.locator('a[href*="severity=CRITICAL"]').first().click();
-  await expect(page).toHaveURL(/#\/incidents\?.*severity=CRITICAL/);
-  await page.keyboard.press('Control+k');
+  let releaseIncidentChunk;
+  const incidentChunkReady = new Promise((resolve) => { releaseIncidentChunk = resolve; });
+  await page.route('**/assets/Incidents-*.js', async (route) => {
+    await incidentChunkReady;
+    await route.continue();
+  });
+  try {
+    await page.locator('a[href*="severity=CRITICAL"]').first().click();
+    await expect(page).toHaveURL(/#\/incidents\?.*severity=CRITICAL/);
+    await page.keyboard.press('Control+k');
+  } finally {
+    releaseIncidentChunk();
+  }
   const palette = page.getByRole('dialog', { name: 'Search HydroGrid' });
   await palette.getByRole('searchbox', { name: 'Search workspace' }).fill('Central Relief Hub');
   await palette.getByRole('link', { name: /Central Relief Hub/ }).click();

@@ -1,21 +1,28 @@
 # HydroGrid judge walkthrough
 
-Open the live demo in a fresh browser tab while connected. Choose **Start interactive demo** and wait for the dashboard to show the seeded exercise. Open **Citizen SOS** while connected before starting the outage test. This gives the browser time to save the app shell for the offline step. Use fictional values throughout. [Live demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Local Docker setup](../README.md#run-the-demo) · [Judging evidence](judging.md)
+Open the guest exercise in a fresh browser profile or private window while connected. Keep the same tab through dispatch, response and shelter admission so every page uses the same workspace. All incidents, units, exercise roads and shelter figures are fictional. A cold Render start can add about a minute before the walkthrough begins. [Hosted demo](https://hydrogrid-demo-7v9f.onrender.com/) · [Local setup](setup.md) · [Product gallery](showcase.md)
 
-## Four minutes
+## Experience HydroGrid in 90 Seconds
 
-| Time | What to show | What proves it |
+| From app ready | Do this | What to look for |
 | --- | --- | --- |
-| 0:00–0:55 | Open **Citizen SOS** and enable **Simulate offline**. Save an SOS and reload the page. Turn the simulation off, then open **Command center**. | The report stays queued after reload. Delivery is confirmed when the connection returns, and the report appears in the incident list. |
-| 0:55–1:35 | In **Simulation lab**, find the flood route demonstration. Set the endpoints to **Market Cross** and **Canal Bridge**. Clear the flood, then apply **40%** shared map flood intensity. | The direct road closes and the route moves to two alternate segments. Clear the flood again before the dispatch step. |
-| 1:35–2:35 | In **Command center**, select a report, inspect its priority and recommended unit, and confirm dispatch. In **Responder console**, mark the mission en route, on scene, and complete. Open **Shelters** to reserve spaces and record an admission. | One response moves from report to completion, and the shelter's available capacity reflects the reservation. |
-| 2:35–4:00 | In **Simulation lab**, run seed **1337** with **100** incidents, **15** units, **40%** flood intensity, and **30%** network disruption. Play the scenario, then switch between **FIFO** and **HydroGrid**. | Both policies replay the same inputs. HydroGrid serves **14/14** critical incidents versus **13/14** for FIFO, with mean response rising from **33.72** to **34.16** simulated minutes. |
+| 0:00 | Select **Start interactive demo** and open **Citizen SOS**. Leave **Market Cross** and 3 people selected. Enter 90 cm of water and check **Immediate danger**. | The exercise opens without an account, device GPS or personal details. |
+| 0:20 | In the **Connection** card, select **Simulate offline**, then **Save SOS offline**. Once the log shows **Queued offline**, turn **Simulate offline** off. | The delivery log changes to **Delivered** after the server acknowledges the report. |
+| 0:40 | Open **Command center** and select **Flood rescue request**. Click **Review selected report**, inspect the priority and accessible route, then choose **Dispatch unit** and **Confirm dispatch**. | The report is critical. Score contributions include reported water depth and people affected. The route displays the selected unit’s simulated travel time. |
+| 1:10 | Choose **Open this mission**, then **Mark en route** and **Mark on scene**. Open **Analytics & audit** to see the committed events. | The same incident appears in the field and audit views. |
 
-## For a follow-up question
+The 90-second path assumes a warm app and a connected browser with JavaScript and storage available. The fuller demonstration below includes finishing the mission, check-in and a comparison of policies.
 
-- **What uses real data?** Open **Live Bengaluru**, choose two landmarks, then read the street snapshot date, weather model time, and Karnataka bulletin issue dates. For a private test, enter the access code on two devices and share one device's location. Watch the marker appear on the second device and disappear when sharing stops. [Hosted Bengaluru view](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Source and workspace details](../README.md#live-bengaluru)
+## Follow the report through the whole exercise
 
-- **Where is the proof for offline delivery?** The Playwright test disconnects the browser, reloads the page and checks that the server records one incident after reconnecting. [Browser test](../e2e/tests/browser.spec.mjs)
-- **Why did the route move?** The flood polygon intersects road `R05`. PostGIS marks it closed and Dijkstra selects the open detour through `N11`. [Routing notes](engineering.md) · [Route test](../e2e/tests/api.spec.mjs)
-- **What stops double assignments?** Dispatch and shelter reservations lock the records involved. The integration tests race two requests for one unit and two reservations for limited spaces. [Transaction tests](../backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java)
-- **Does one policy always win?** Seed `7` gives HydroGrid a lower mean response time and four more unserved incidents. Mean response covers served reports. Both policies use the same roads, unit fleet, report delays, and 120-minute simulated horizon. [Benchmark results](benchmarks.md)
+1. **Prove the outage flow.** Open **Citizen SOS** while connected to prime the app shell. Use the in-app offline toggle, save the report, reload, then reconnect. To evaluate a real browser network outage, run the Playwright browser test, which explicitly takes Chromium offline and checks that only one server incident is created. [Browser tests](../e2e/tests/browser.spec.mjs)
+2. **Prove the flood detour.** In **Simulation lab**, select **Flood route demonstration**. Choose **Market Cross** and **Canal Bridge**, then **Clear flood**. Apply **40%** shared map flood intensity. Road R05 closes and the route moves to two alternate segments through N11. Clear the flood before dispatching. [Routing and concurrency API tests](../e2e/tests/api.spec.mjs)
+3. **Confirm dispatch and track the response.** In **Command center**, inspect the new report’s priority reasons, equipment, spare places and route. Confirm the assignment and use **Open this mission**. Mark the unit en route and on scene. Keep the mission open while reserving space.
+4. **Reserve and admit.** In **Shelters**, choose a shelter with available places and select **Reserve spaces**. Link **Flood rescue request · N06** and reserve its three places. Choose **Check in**. The reservation becomes an admission while available space is unchanged from the post-reservation count. Return to that mission and select **Complete mission**. The audit records dispatch, mission and shelter events together. [Shelter transaction tests](../backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java)
+5. **Compare policies.** Run **Simulation lab** with seed 1337, 100 reports, 15 units, 40% flood intensity and 30% chance of delayed reporting. Switch **Playback strategy** between FIFO and HydroGrid. Critical service changes from 13/14 to 14/14, while mean response rises from 33.72 to 34.16 simulated minutes. Export JSON or rerun all three published seeds. [Benchmark results](benchmarks.md)
+
+## Inspect the sourced Bengaluru view
+
+Choose two landmarks in **Live Bengaluru**. Inspect the OpenStreetMap snapshot date, Open-Meteo model timestamp and original Karnataka bulletin issue dates before interpreting them. The bounded street preview excludes closure and flood status. The public competition exercise requires no private field code, real GPS, or agency operator login. HydroGrid is a prototype. In India, use the official 112 service for emergencies. [Live Bengaluru](https://hydrogrid-demo-7v9f.onrender.com/#/live) · [Data sources and terms](attribution.md) · [Official 112 service](https://www.mha.gov.in/emergency-response-support-system-erss)
+
+[Two-minute narration and recording storyboard](demo-script.md) · [Competition evidence](judging.md)

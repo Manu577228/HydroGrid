@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 310" role="img" aria-labelledby="title desc">
+  <title id="title">HydroGrid 2.0</title>
+  <desc id="desc">Every SOS Counts. A teal droplet and a stylized road network on a navy background.</desc>
+  <defs>
+    <linearGradient id="surface" x1="0" x2="1" y1="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#091723"/>
+      <stop offset="1" stop-color="#102f43"/>
+    </linearGradient>
+    <linearGradient id="roads" x1="0" x2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#3e6986" stop-opacity="0"/>
+      <stop offset="1" stop-color="#4b8caa" stop-opacity=".8"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#29a8c4" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#29a8c4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" fill="#b8e9fa" opacity=".2"/>
+    </pattern>
+    <clipPath id="frame">
+      <rect width="1200" height="310" rx="26"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="310" fill="url(#surface)"/>
+    <ellipse cx="960" cy="140" rx="360" ry="255" fill="url(#glow)"/>
+    <rect x="556" y="0" width="644" height="310" fill="url(#grid)"/>
+    <g fill="none" stroke="url(#roads)" stroke-width="2" stroke-linejoin="round">
+      <path d="M550 54 700 54 766 119 934 119 1004 48 1199 48 M552 225 701 225 766 174 914 174 994 235 1199 235"/>
+      <path d="M644 0 644 104 712 173 712 288 793 310 M804 0 804 63 884 119 884 245 933 310"/>
+      <path d="M970 0 970 84 1040 154 1200 154 M595 281 805 281 879 224 907 203 1107 203 1186 282 1200 282"/>
+      <path d="M1058 0 1058 98 1114 154 1114 242 1057 310 M939 287 990 287 1037 235"/>
+    </g>
+    <path d="M654 225H701L766 174H861L906 130H980L1040 154H1114" fill="none" stroke="#60ead8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="1114" cy="154" r="30" fill="#5ce5d4" opacity=".14"/>
+    <circle cx="1114" cy="154" r="19" fill="none" stroke="#5ce5d4" opacity=".6"/>
+    <circle cx="1114" cy="154" r="7" fill="#86fae8"/>
+    <circle cx="766" cy="174" r="6" fill="#7df3e4"/>
+    <circle cx="994" cy="235" r="16" fill="#ff9b70" opacity=".17"/>
+    <circle cx="994" cy="235" r="5" fill="#ffab86"/>
+    <rect x="53" y="57" width="61" height="61" rx="16" fill="#143447" stroke="#366381"/>
+    <path d="M83.5 68c5 7 14.5 16.5 14.5 24.2a14.5 14.5 0 1 1-29 0C69 84.5 78.5 75 83.5 68Zm-8.7 26q4.4-4.4 8.7 0t8.7 0" fill="none" stroke="#7df3e4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="53" y="193" fill="#f4fcff" font-family="system-ui, sans-serif" font-weight="740" font-size="75" letter-spacing="-4">HydroGrid<tspan fill="#7df3e4" font-size="36" letter-spacing="0" dx="17">2.0</tspan></text>
+    <text x="57" y="241" fill="#c6ddea" font-family="system-ui, sans-serif" font-weight="500" font-size="31">Every SOS Counts.</text>
+  </g>
+  <rect x=".75" y=".75" width="1198.5" height="308.5" rx="25" fill="none" stroke="#426784" stroke-width="1.5"/>
+</svg>

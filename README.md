@@ -15,13 +15,15 @@
 
 Explore HydroGrid's interface and discover how its disaster-response workflows fit together through a guided product demonstration.
 
+https://github.com/user-attachments/assets/9e154aa0-12d1-42c8-ba07-4de2e6c6116a
+
 [**View the Arcade walkthrough**](https://app.arcade.software/share/videos/MP7xitoNReNRFvuzHRsM)
 
 ### 2. YouTube — Project Presentation
 
 Discover the motivation behind HydroGrid, its core capabilities, and its development for the Build with Codex challenge by GeeksforGeeks.
 
-[![Watch the HydroGrid project presentation on YouTube](https://img.youtube.com/vi/IcKySsTgm60/hqdefault.jpg)](https://youtu.be/IcKySsTgm60?si=2pmQiSN6Ya03ew2l)
+https://github.com/user-attachments/assets/4658d878-f527-4701-896a-7175c80d56d1
 
 [**Watch the project presentation on YouTube**](https://youtu.be/IcKySsTgm60?si=2pmQiSN6Ya03ew2l)
 

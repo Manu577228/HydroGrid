@@ -15,7 +15,7 @@
 
 Explore HydroGrid's interface and discover how its disaster-response workflows fit together through a guided product demonstration.
 
-https://github.com/user-attachments/assets/9e154aa0-12d1-42c8-ba07-4de2e6c6116a
+https://github.com/user-attachments/assets/1e6c2099-6455-421f-bc94-253c6927e29b
 
 [**View the Arcade walkthrough**](https://app.arcade.software/share/videos/MP7xitoNReNRFvuzHRsM)
 

@@ -23,7 +23,7 @@ https://github.com/user-attachments/assets/1e6c2099-6455-421f-bc94-253c6927e29b
 
 Discover the motivation behind HydroGrid, its core capabilities, and its development for the Build with Codex challenge by GeeksforGeeks.
 
-https://github.com/user-attachments/assets/4658d878-f527-4701-896a-7175c80d56d1
+https://github.com/user-attachments/assets/cb10949e-4d29-4f18-b898-13881c8becb5
 
 [**Watch the project presentation on YouTube**](https://youtu.be/IcKySsTgm60?si=2pmQiSN6Ya03ew2l)
 

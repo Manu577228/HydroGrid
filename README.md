@@ -141,6 +141,39 @@ sequenceDiagram
 
 [Dispatch, responder, shelter and real-time diagrams](docs/workflows/README.md) · [Transactional integration tests](backend/src/test/java/com/hydrogrid/HydroGridIntegrationTest.java)
 
+## Algorithmic engineering and decision intelligence
+
+HydroGrid combines graph algorithms, data structures, computational geometry, and constrained resource allocation to make disaster-response decisions explainable and reproducible.
+
+| Algorithm / data structure | How HydroGrid uses it | Implementation |
+| --- | --- | --- |
+| State-augmented Dijkstra | Finds shortest-distance routes on a directed Bengaluru street graph while tracking active turn-restriction prefixes. | [geography.ts — findStreetRoute](frontend/src/geography.ts) |
+| Trie (prefix tree) | Represents prohibited road-edge sequences, including multi-edge turn restrictions. | [geography.ts — graphFor](frontend/src/geography.ts) |
+| Custom binary min-heap | Selects the lowest-distance street-routing candidate; insertion and extraction take O(log n). | [geography.ts — enqueue / dequeue](frontend/src/geography.ts) |
+| Weighted Dijkstra | Minimizes estimated rescue travel time while excluding blocked roads; reconstructs the selected path. | [RoadNetwork.java — route](backend/src/main/java/com/hydrogrid/engine/RoadNetwork.java) |
+| Greedy constrained resource allocation | Filters units by availability, equipment, capacity and reachability, then ranks eligible units by travel time and resource fit. | [HydroEngine.java — match](backend/src/main/java/com/hydrogrid/engine/HydroEngine.java) |
+| All-pairs route precomputation | Runs pairwise Dijkstra searches once per simulation scenario and reuses the resulting routes during both policy replays. | [DispatchSimulation.java — routes](backend/src/main/java/com/hydrogrid/engine/DispatchSimulation.java) |
+| Line–polygon intersection | Detects exercise roads crossing or lying inside flood polygons using Java geometry and PostGIS spatial predicates. | [RoadNetwork.java](backend/src/main/java/com/hydrogrid/engine/RoadNetwork.java) · [SpatialGraph.java](backend/src/main/java/com/hydrogrid/store/SpatialGraph.java) |
+| Geospatial nearest-neighbor lookup | Maps coordinates to the nearest exercise graph node using PostGIS geography distance ordering. | [SpatialGraph.java — nearest](backend/src/main/java/com/hydrogrid/store/SpatialGraph.java) |
+| Haversine formula | Estimates great-circle distances between geographic waypoints. | [RoadNetwork.java — greatCircleKm](backend/src/main/java/com/hydrogrid/engine/RoadNetwork.java) |
+| Dynamic priority scheduling | Recomputes incident urgency using severity, affected people, medical needs, vulnerability, water depth and waiting time. | [HydroEngine.java — triage](backend/src/main/java/com/hydrogrid/engine/HydroEngine.java) · [DispatchSimulation.java — sortByPriority](backend/src/main/java/com/hydrogrid/engine/DispatchSimulation.java) |
+| Fixed-time-step simulation | Models incident arrivals, offline delivery delays, vehicle availability, travel and service duration over 120 minutes. | [DispatchSimulation.java — replay](backend/src/main/java/com/hydrogrid/engine/DispatchSimulation.java) |
+| Seeded pseudorandom generation | Uses SplittableRandom to generate reproducible incidents and fleet configurations shared by both dispatch policies. | [DispatchSimulation.java — run](backend/src/main/java/com/hydrogrid/engine/DispatchSimulation.java) |
+
+### Two distinct routing engines
+
+- **Flood-aware rescue routing:** Java Dijkstra minimizes estimated travel minutes (distance in km × 60 / speed in km/h) on a bounded synthetic exercise graph. Blocked edges are excluded and disconnected destinations are reported as unreachable.
+- **Bengaluru street routing:** TypeScript Dijkstra minimizes road distance on a bounded OpenStreetMap-derived directed graph. A Trie tracks active prohibited-turn prefixes, and a custom min-heap manages candidates. The search state includes both the vertex and active restriction prefixes, rather than the vertex alone.
+
+### Explainable allocation and reproducible evaluation
+
+- **Resource-fit ranking:** Estimated travel minutes + 0.35 × spare capacity + specialist-equipment penalties. Equipment, capacity and route feasibility are checked before ranking; the coordinator retains final dispatch authority.
+- **Priority-aware dispatch:** Severity bands and bounded urgency contributions produce inspectable scores, with deterministic tie-breaking.
+- **Paired policy evaluation:** The same seeded scenario is replayed under FIFO and HydroGrid policies, supporting up to 250 incidents and 40 units over a 120-minute horizon. Metrics include critical coverage, response time, utilization and served/unserved incidents.
+- **Engineering boundaries:** Greedy allocation does not guarantee a globally optimal fleet assignment. Exercise closures and rescue outcomes are synthetic; the separate sourced street graph does not establish real-world road safety or rescue effectiveness.
+
+[Engineering details](docs/engineering.md) · [Backend architecture](docs/architecture/backend.md) · [Benchmark methodology and results](docs/benchmarks.md)
+
 ## System architecture
 
 ```mermaid
